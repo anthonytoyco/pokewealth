@@ -220,7 +220,7 @@ export default function Collection() {
                                         </p>
                                         <div className="flex items-center space-x-2">
                                             <p className="text-2xl font-black text-[#0078ff]">
-                                                {card.estimated_price}
+                                                {card.estimated_price || 'N/A'}
                                             </p>
                                             {priceChanges[card.id] && (
                                                 <div className={`text-sm font-bold ${priceChanges[card.id].percentage >= 0

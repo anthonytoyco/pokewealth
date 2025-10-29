@@ -31,6 +31,12 @@ export default function Navigation() {
                             Collection
                         </Link>
                         <Link
+                            href="/deck-binder"
+                            className="px-5 py-2.5 text-[#5a6c7d] dark:text-[#a8b2c1] hover:text-[#0078ff] dark:hover:text-[#0078ff] font-semibold transition-colors duration-200 rounded-lg hover:bg-[#f8f9fb] dark:hover:bg-[#1a1f2e]"
+                        >
+                            Decks & Binders
+                        </Link>
+                        <Link
                             href="/wealth"
                             className="px-5 py-2.5 bg-[#0078ff] hover:bg-[#0060d9] text-white font-bold rounded-lg transition-colors duration-200 shadow-sm ml-2"
                         >
