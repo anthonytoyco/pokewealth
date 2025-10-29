@@ -26,14 +26,26 @@ interface Card {
     overall_grade?: number
 }
 
+interface PriceChange {
+    value: number
+    percentage: number
+}
+
 export default function Collection() {
     const [cards, setCards] = useState<Card[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [priceChanges, setPriceChanges] = useState<Record<number, PriceChange>>({})
 
     useEffect(() => {
         fetchCards()
     }, [])
+
+    useEffect(() => {
+        if (cards.length > 0) {
+            fetchPriceChanges()
+        }
+    }, [cards])
 
     const fetchCards = async () => {
         try {
@@ -47,6 +59,26 @@ export default function Collection() {
             setError(err instanceof Error ? err.message : 'An error occurred')
         } finally {
             setLoading(false)
+        }
+    }
+
+    const fetchPriceChanges = async () => {
+        try {
+            const changes: Record<number, PriceChange> = {}
+
+            // For now, we'll create mock price changes
+            // In a real implementation, you'd fetch from the price history API
+            for (const card of cards) {
+                const mockChange = {
+                    value: (Math.random() - 0.5) * 50, // Random change between -25 and +25
+                    percentage: (Math.random() - 0.5) * 20 // Random percentage between -10% and +10%
+                }
+                changes[card.id] = mockChange
+            }
+
+            setPriceChanges(changes)
+        } catch (err) {
+            console.error('Error fetching price changes:', err)
         }
     }
 
@@ -165,9 +197,27 @@ export default function Collection() {
                                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                                             Estimated Price
                                         </p>
-                                        <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                                            {card.estimated_price}
-                                        </p>
+                                        <div className="flex items-center space-x-2">
+                                            <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                                                {card.estimated_price}
+                                            </p>
+                                            {priceChanges[card.id] && (
+                                                <div className={`text-sm font-medium ${priceChanges[card.id].percentage >= 0
+                                                        ? 'text-green-600 dark:text-green-400'
+                                                        : 'text-red-600 dark:text-red-400'
+                                                    }`}>
+                                                    {priceChanges[card.id].percentage >= 0 ? '+' : ''}{priceChanges[card.id].percentage.toFixed(1)}%
+                                                </div>
+                                            )}
+                                        </div>
+                                        {priceChanges[card.id] && (
+                                            <p className={`text-xs ${priceChanges[card.id].value >= 0
+                                                    ? 'text-green-600 dark:text-green-400'
+                                                    : 'text-red-600 dark:text-red-400'
+                                                }`}>
+                                                {priceChanges[card.id].value >= 0 ? '+' : ''}${priceChanges[card.id].value.toFixed(2)} from last update
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* Overall Grade */}

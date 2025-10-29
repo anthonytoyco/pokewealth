@@ -21,6 +21,12 @@ export default function Navigation() {
                         >
                             Collection
                         </Link>
+                        <Link
+                            href="/wealth"
+                            className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                        >
+                            Portfolio
+                        </Link>
                     </div>
                 </div>
             </div>

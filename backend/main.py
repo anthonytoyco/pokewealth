@@ -10,7 +10,7 @@ from io import BytesIO
 import os
 from dotenv import load_dotenv
 from typing import List, Optional
-from models import PokemonCard
+from models import PokemonCard, PriceHistory
 from database import get_db, create_tables
 
 load_dotenv()
@@ -80,6 +80,46 @@ class CardResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class PriceHistoryResponse(BaseModel):
+    id: int
+    card_id: int
+    price: float
+    price_display: str
+    recorded_at: str
+
+    class Config:
+        from_attributes = True
+
+def parse_price_string(price_str: str) -> float:
+    """Parse price string like '$50 - $100' or '$75' and return average or single value"""
+    import re
+    
+    # Remove currency symbols and extract numbers
+    numbers = re.findall(r'[\d,]+\.?\d*', price_str.replace(',', ''))
+    
+    if not numbers:
+        return 0.0
+    
+    # Convert to floats
+    prices = [float(num) for num in numbers]
+    
+    # Return average if range, single value if not
+    return sum(prices) / len(prices)
+
+def create_price_history_entry(card_id: int, price_display: str, db: Session):
+    """Create a new price history entry for a card"""
+    price_value = parse_price_string(price_display)
+    
+    price_entry = PriceHistory(
+        card_id=card_id,
+        price=price_value,
+        price_display=price_display
+    )
+    
+    db.add(price_entry)
+    db.commit()
+    return price_entry
 
 @app.get("/")
 async def root():
@@ -236,6 +276,9 @@ async def save_card(
         db.commit()
         db.refresh(db_card)
         
+        # Create initial price history entry
+        create_price_history_entry(db_card.id, estimated_price, db)
+        
         return CardResponse(
             id=db_card.id,
             card_name=db_card.card_name,
@@ -371,6 +414,129 @@ async def delete_all_cards(db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to clear cards: {str(e)}")
+
+@app.get("/cards/{card_id}/price-history", response_model=List[PriceHistoryResponse])
+async def get_card_price_history(card_id: int, db: Session = Depends(get_db)):
+    """
+    Get price history for a specific card
+    """
+    price_history = db.query(PriceHistory).filter(PriceHistory.card_id == card_id).order_by(PriceHistory.recorded_at.desc()).all()
+    return [
+        PriceHistoryResponse(
+            id=entry.id,
+            card_id=entry.card_id,
+            price=entry.price,
+            price_display=entry.price_display,
+            recorded_at=entry.recorded_at.isoformat()
+        )
+        for entry in price_history
+    ]
+
+@app.post("/cards/{card_id}/update-price")
+async def update_card_price(
+    card_id: int,
+    new_price: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Update the price of a card and add to price history
+    """
+    card = db.query(PokemonCard).filter(PokemonCard.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    
+    # Update card price
+    card.estimated_price = new_price
+    db.commit()
+    
+    # Add to price history
+    create_price_history_entry(card_id, new_price, db)
+    
+    return {"status": "success", "message": "Price updated successfully"}
+
+@app.get("/portfolio/analytics")
+async def get_portfolio_analytics(db: Session = Depends(get_db)):
+    """
+    Get portfolio analytics including total value and price changes
+    """
+    from datetime import datetime, timedelta
+    
+    # Get all cards with their latest prices
+    cards = db.query(PokemonCard).all()
+    
+    total_value = 0
+    total_value_1d_ago = 0
+    total_value_1m_ago = 0
+    total_value_3m_ago = 0
+    total_value_1y_ago = 0
+    
+    now = datetime.utcnow()
+    one_day_ago = now - timedelta(days=1)
+    one_month_ago = now - timedelta(days=30)
+    three_months_ago = now - timedelta(days=90)
+    one_year_ago = now - timedelta(days=365)
+    
+    for card in cards:
+        current_price = parse_price_string(card.estimated_price)
+        total_value += current_price
+        
+        # Get historical prices
+        price_1d = db.query(PriceHistory).filter(
+            PriceHistory.card_id == card.id,
+            PriceHistory.recorded_at <= one_day_ago
+        ).order_by(PriceHistory.recorded_at.desc()).first()
+        
+        price_1m = db.query(PriceHistory).filter(
+            PriceHistory.card_id == card.id,
+            PriceHistory.recorded_at <= one_month_ago
+        ).order_by(PriceHistory.recorded_at.desc()).first()
+        
+        price_3m = db.query(PriceHistory).filter(
+            PriceHistory.card_id == card.id,
+            PriceHistory.recorded_at <= three_months_ago
+        ).order_by(PriceHistory.recorded_at.desc()).first()
+        
+        price_1y = db.query(PriceHistory).filter(
+            PriceHistory.card_id == card.id,
+            PriceHistory.recorded_at <= one_year_ago
+        ).order_by(PriceHistory.recorded_at.desc()).first()
+        
+        if price_1d:
+            total_value_1d_ago += price_1d.price
+        if price_1m:
+            total_value_1m_ago += price_1m.price
+        if price_3m:
+            total_value_3m_ago += price_3m.price
+        if price_1y:
+            total_value_1y_ago += price_1y.price
+    
+    def calculate_change(current, historical):
+        if historical == 0:
+            return 0
+        return ((current - historical) / historical) * 100
+    
+    return {
+        "total_value": total_value,
+        "total_cards": len(cards),
+        "price_changes": {
+            "1_day": {
+                "value": total_value - total_value_1d_ago,
+                "percentage": calculate_change(total_value, total_value_1d_ago)
+            },
+            "1_month": {
+                "value": total_value - total_value_1m_ago,
+                "percentage": calculate_change(total_value, total_value_1m_ago)
+            },
+            "3_months": {
+                "value": total_value - total_value_3m_ago,
+                "percentage": calculate_change(total_value, total_value_3m_ago)
+            },
+            "1_year": {
+                "value": total_value - total_value_1y_ago,
+                "percentage": calculate_change(total_value, total_value_1y_ago)
+            }
+        }
+    }
 
 @app.get("/health")
 async def health():
