@@ -102,6 +102,33 @@ export default function Collection() {
         return 'text-red-600 dark:text-red-400'
     }
 
+    const deleteCard = async (cardId: number, cardName: string) => {
+        if (!confirm(`Are you sure you want to delete "${cardName}"? This action cannot be undone.`)) {
+            return
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8000/cards/${cardId}`, {
+                method: 'DELETE',
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to delete card')
+            }
+
+            // Remove the card from the local state
+            setCards(cards.filter(card => card.id !== cardId))
+            // Also remove from price changes
+            setPriceChanges(prev => {
+                const updated = { ...prev }
+                delete updated[cardId]
+                return updated
+            })
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete card')
+        }
+    }
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
@@ -204,14 +231,26 @@ export default function Collection() {
                                 {/* Card Details */}
                                 <div className="p-6">
                                     <div className="mb-4 flex items-center justify-between gap-3">
-                                        <h3 className="text-xl font-black text-[#2c3e50] dark:text-[#f0f0f0]">
+                                        <h3 className="text-xl font-black text-[#2c3e50] dark:text-[#f0f0f0] flex-1">
                                             {card.card_name}
                                         </h3>
-                                        {typeof card.is_authentic !== 'undefined' && (
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${card.is_authentic ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>
-                                                {card.is_authentic ? 'Authentic' : 'Counterfeit'}
-                                            </span>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            {typeof card.is_authentic !== 'undefined' && (
+                                                <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${card.is_authentic ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>
+                                                    {card.is_authentic ? 'Authentic' : 'Counterfeit'}
+                                                </span>
+                                            )}
+                                            <button
+                                                onClick={() => deleteCard(card.id, card.card_name)}
+                                                className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors group"
+                                                title="Delete card"
+                                                aria-label={`Delete ${card.card_name}`}
+                                            >
+                                                <svg className="w-5 h-5 text-red-500 group-hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="mb-4">

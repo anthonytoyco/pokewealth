@@ -90,7 +90,18 @@ export default function DeckBinder() {
         // For now, we'll use localStorage. In a real app, this would be an API call
         const savedBinders = localStorage.getItem('pokewealth_binders')
         if (savedBinders) {
-            setBinders(JSON.parse(savedBinders))
+            const bindersData = JSON.parse(savedBinders)
+            setBinders(bindersData)
+        }
+    }
+
+    const clearAllData = () => {
+        if (confirm('Are you sure you want to clear all decks and binders? This action cannot be undone.')) {
+            localStorage.removeItem('pokewealth_binders')
+            localStorage.removeItem('pokewealth_decks')
+            setBinders([])
+            setDecks([])
+            setError(null)
         }
     }
 
@@ -179,10 +190,18 @@ export default function DeckBinder() {
 
             const aiBinder = await response.json()
 
+            // Map card IDs back to full card objects
+            const groupsWithFullCards = (aiBinder.groups || []).map((group: any) => ({
+                ...group,
+                cards: group.cards.map((cardId: number) =>
+                    cards.find(c => c.id === cardId)
+                ).filter(Boolean) as Card[]
+            }))
+
             const newBinder: Binder = {
                 id: Date.now().toString(),
                 name: aiBinder.name || 'AI Generated Binder',
-                groups: aiBinder.groups || [],
+                groups: groupsWithFullCards,
                 totalCards: Number(aiBinder.totalCards) || 0,
                 totalValue: Number(aiBinder.totalValue) || 0,
                 created_at: new Date().toISOString()
@@ -259,8 +278,7 @@ export default function DeckBinder() {
 
         const totalCards = cards.length
         const totalValue = cards.reduce((sum, card) => {
-            const price = card.estimated_price ? parseFloat(card.estimated_price.replace(/[$,]/g, '')) || 0 : 0
-            return sum + price
+            return sum + parseCardPrice(card.estimated_price)
         }, 0)
 
         const newBinder: Binder = {
@@ -291,6 +309,23 @@ export default function DeckBinder() {
         return colors[index % colors.length]
     }
 
+    const parseCardPrice = (priceString: string): number => {
+        if (!priceString) return 0
+        // Handle price ranges like "$10 - $20 USD" by taking the average
+        const priceMatch = priceString.match(/\$(\d+(?:\.\d+)?)\s*-\s*\$(\d+(?:\.\d+)?)/)
+        if (priceMatch) {
+            const minPrice = parseFloat(priceMatch[1])
+            const maxPrice = parseFloat(priceMatch[2])
+            return (minPrice + maxPrice) / 2
+        }
+        // Handle single prices like "$15.50"
+        const singlePriceMatch = priceString.match(/\$(\d+(?:\.\d+)?)/)
+        if (singlePriceMatch) {
+            return parseFloat(singlePriceMatch[1])
+        }
+        return 0
+    }
+
     const toggleCardSelection = (card: Card) => {
         setSelectedCards(prev =>
             prev.find(c => c.id === card.id)
@@ -315,9 +350,18 @@ export default function DeckBinder() {
             <main className="container mx-auto px-6 py-12 max-w-7xl">
                 {/* Header */}
                 <div className="text-center mb-10 animate-fade-in">
-                    <h1 className="text-6xl font-black text-[#0078ff] mb-3">
-                        Deck & Binder Manager
-                    </h1>
+                    <div className="flex justify-between items-center mb-6">
+                        <div></div>
+                        <h1 className="text-6xl font-black text-[#0078ff]">
+                            Deck & Binder Manager
+                        </h1>
+                        <button
+                            onClick={clearAllData}
+                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors text-sm"
+                        >
+                            Clear All Data
+                        </button>
+                    </div>
                     <p className="text-xl text-[#5a6c7d] dark:text-[#a8b2c1] font-medium">
                         Create and organize your Pokémon card collections with AI assistance
                     </p>
@@ -335,6 +379,7 @@ export default function DeckBinder() {
                         </button>
                     </div>
                 )}
+
 
                 {/* Tab Navigation */}
                 <div className="flex justify-center mb-8">
@@ -667,10 +712,10 @@ export default function DeckBinder() {
                                                                         animationDelay: `${cardIndex * 50}ms`
                                                                     }}
                                                                 >
-                                                                    {card.id ? (
+                                                                    {card.id && card.id > 0 ? (
                                                                         <>
                                                                             <img
-                                                                                src={`http://localhost:8000/cards/${card.id}/image?v=${card.id}`}
+                                                                                src={`http://localhost:8000/cards/${card.id}/image`}
                                                                                 alt={card.card_name}
                                                                                 className="w-full h-full object-cover rounded-lg"
                                                                                 onError={(e) => {
@@ -744,17 +789,18 @@ export default function DeckBinder() {
                                                                 <span className="text-[#5a6c7d] dark:text-[#a8b2c1]">
                                                                     Total Value: <span className="font-bold text-[#0078ff]">
                                                                         ${Number(group.cards.reduce((sum, card) => {
-                                                                            const price = card.estimated_price ? parseFloat(card.estimated_price.replace(/[$,]/g, '')) || 0 : 0;
-                                                                            return sum + price;
+                                                                            return sum + parseCardPrice(card.estimated_price)
                                                                         }, 0)).toFixed(2)}
                                                                     </span>
                                                                 </span>
                                                                 <span className="text-[#5a6c7d] dark:text-[#a8b2c1]">
                                                                     Avg Grade: <span className="font-bold text-[#2c3e50] dark:text-[#f0f0f0]">
-                                                                        {group.cards.length > 0 ?
-                                                                            (group.cards.reduce((sum, card) => sum + (card.overall_grade || 0), 0) / group.cards.length).toFixed(1)
-                                                                            : 'N/A'
-                                                                        }
+                                                                        {(() => {
+                                                                            const cardsWithGrades = group.cards.filter(card => card.overall_grade && card.overall_grade > 0)
+                                                                            if (cardsWithGrades.length === 0) return 'N/A'
+                                                                            const avgGrade = cardsWithGrades.reduce((sum, card) => sum + (card.overall_grade || 0), 0) / cardsWithGrades.length
+                                                                            return avgGrade.toFixed(1)
+                                                                        })()}
                                                                     </span>
                                                                 </span>
                                                             </div>

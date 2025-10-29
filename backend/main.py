@@ -658,6 +658,23 @@ async def get_card_image(card_id: int, db: Session = Depends(get_db)):
         }
     )
 
+@app.delete("/cards/{card_id}")
+async def delete_card(card_id: int, db: Session = Depends(get_db)):
+    """
+    Delete a specific Pokemon card from the collection
+    """
+    card = db.query(PokemonCard).filter(PokemonCard.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    
+    try:
+        db.delete(card)
+        db.commit()
+        return {"status": "ok", "message": f"Card {card_id} deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error deleting card: {str(e)}")
+
 
 @app.get("/debug/cards")
 async def debug_cards(db: Session = Depends(get_db)):
