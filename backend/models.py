@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Column, Integer, String, Float, Text,
-    DateTime, LargeBinary, ForeignKey
+    DateTime, LargeBinary, ForeignKey, Boolean
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -33,6 +33,11 @@ class PokemonCard(Base):
 
     # Overall grade (calculated average)
     overall_grade = Column(Float, nullable=True)
+
+    # Authenticity detection
+    is_authentic = Column(Boolean, nullable=True)
+    authenticity_confidence = Column(Float, nullable=True)
+    authenticity_notes = Column(Text, nullable=True)
 
     # Real market data from Pokemon API
     market_price = Column(Float, nullable=True)

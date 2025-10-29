@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useEffect } from 'react'
 import Image from 'next/image'
 
 interface GradingCondition {
@@ -27,6 +27,9 @@ interface CardAnalysisResult {
   psa_10_price?: number
   psa_9_price?: number
   psa_8_price?: number
+  is_authentic?: boolean
+  authenticity_confidence?: number
+  authenticity_notes?: string
 }
 
 export default function Home() {
@@ -36,6 +39,7 @@ export default function Home() {
   const [saving, setSaving] = useState(false)
   const [result, setResult] = useState<CardAnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [showGradingForm, setShowGradingForm] = useState(false)
   const [gradingData, setGradingData] = useState({
@@ -48,6 +52,16 @@ export default function Home() {
     surface_score: '',
     surface_description: ''
   })
+
+  // Auto-dismiss success message after 5 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage])
 
   // Auto-dismiss success message after 5 seconds
   useEffect(() => {
@@ -75,6 +89,7 @@ export default function Home() {
     // Upload to backend
     setLoading(true)
     setError(null)
+    setSuccessMessage(null)
     setSuccessMessage(null)
     setResult(null)
     setShowGradingForm(false)
@@ -137,6 +152,7 @@ export default function Home() {
     setSaving(true)
     setError(null)
     setSuccessMessage(null)
+    setSuccessMessage(null)
 
     try {
       const formData = new FormData()
@@ -144,6 +160,15 @@ export default function Home() {
       formData.append('card_name', result.card_name)
       formData.append('estimated_price', result.estimated_price)
       formData.append('details', result.details)
+      if (typeof result.is_authentic !== 'undefined') {
+        formData.append('is_authentic', String(result.is_authentic))
+      }
+      if (typeof result.authenticity_confidence !== 'undefined') {
+        formData.append('authenticity_confidence', String(result.authenticity_confidence))
+      }
+      if (result.authenticity_notes) {
+        formData.append('authenticity_notes', result.authenticity_notes)
+      }
 
       // Add grading fields only if they have non-empty values
       if (gradingData.centering_score && String(gradingData.centering_score).trim() !== '') {
@@ -228,6 +253,7 @@ export default function Home() {
 
       // Show success message
       setSuccessMessage('Card saved successfully!')
+      setSuccessMessage('Card saved successfully!')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -243,7 +269,7 @@ export default function Home() {
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen relative"
       style={{
         backgroundImage: 'url(/pokemon-background.jpg)',
@@ -255,7 +281,7 @@ export default function Home() {
     >
       {/* White overlay */}
       <div className="absolute inset-0 bg-white/40 dark:bg-[#1a1f2e]/40 z-0" />
-      
+
       <main className="container mx-auto px-6 pt-15 pb-16 max-w-4xl relative z-10">
         {/* Header */}
         <div className="text-center mb-10 animate-fade-in">
@@ -277,7 +303,7 @@ export default function Home() {
               <div className="floating-pokeball"><div className="pokeball"></div></div>
               <div className="floating-pokeball"><div className="pokeball"></div></div>
               <div className="floating-pokeball"><div className="pokeball"></div></div>
-              
+
               {selectedImage ? (
                 <div className="relative w-full h-full p-4 z-10">
                   <Image
@@ -336,6 +362,31 @@ export default function Home() {
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-[#ff4444] rounded-lg p-4 mb-6 animate-fade-in">
               <p className="text-[#ff4444] font-semibold">{error}</p>
+            </div>
+          )}
+
+          {/* Success Toast */}
+          {successMessage && (
+            <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 rounded-lg p-4 shadow-2xl animate-fade-in max-w-md">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-green-800 dark:text-green-200 font-bold text-lg">{successMessage}</p>
+                  <p className="text-green-600 dark:text-green-400 text-sm mt-1">Your card has been added to your collection!</p>
+                </div>
+                <button
+                  onClick={() => setSuccessMessage(null)}
+                  className="flex-shrink-0 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
           )}
 
@@ -452,6 +503,28 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Authenticity Section */}
+              {(typeof result.is_authentic !== 'undefined') && (
+                <div className="bg-white dark:bg-[#242b3d] border border-[#e1e4e8] dark:border-[#3d4556] rounded-xl p-6 mb-6 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-2 uppercase tracking-wide">Authenticity</p>
+                      <div className="flex items-center gap-3">
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${result.is_authentic ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>
+                          {result.is_authentic ? 'Authentic' : 'Potential Counterfeit'}
+                        </span>
+                        {typeof result.authenticity_confidence !== 'undefined' && (
+                          <span className="text-sm text-[#5a6c7d] dark:text-[#a8b2c1]">Confidence: {Math.round(result.authenticity_confidence)}%</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {result.authenticity_notes && (
+                    <p className="mt-3 text-sm text-[#5a6c7d] dark:text-[#a8b2c1]">{result.authenticity_notes}</p>
+                  )}
+                </div>
+              )}
+
               {/* Overall Grade */}
               {result.overall_grade && (
                 <div className="bg-white dark:bg-[#242b3d] border border-[#e1e4e8] dark:border-[#3d4556] rounded-xl p-6 mb-6 shadow-sm">
@@ -534,10 +607,11 @@ export default function Home() {
               {/* Action Buttons */}
               <div className="flex gap-4">
                 <button
-                  onClick={() => setShowGradingForm(!showGradingForm)}
-                  className="flex-1 px-6 py-3 bg-white dark:bg-[#242b3d] border-2 border-[#e1e4e8] dark:border-[#3d4556] hover:border-[#5a6c7d] dark:hover:border-[#5a6c7d] text-[#2c3e50] dark:text-[#f0f0f0] font-bold rounded-lg transition-all duration-200"
+                  disabled
+                  className="flex-1 px-6 py-3 bg-white dark:bg-[#242b3d] border-2 border-[#e1e4e8] dark:border-[#3d4556] text-[#2c3e50] dark:text-[#f0f0f0] font-bold rounded-lg opacity-60 cursor-not-allowed"
+                  title="Grading is AI-generated and cannot be edited"
                 >
-                  {showGradingForm ? 'Hide' : 'Edit'} Grading
+                  Grading is AI-generated
                 </button>
                 <button
                   onClick={handleSaveCard}
@@ -659,7 +733,7 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-4">  
+        <div className="text-center mt-4">
           <p className="text-xl text-[#ffffff]">
             Powered by <span className="text-l font-bold text-yellow-500 dark:text-yellow-400">Gemini AI</span>
           </p>
