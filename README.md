@@ -66,8 +66,10 @@ DONE (image uploading and analyzing should work now)
 1. Make sure both backend and frontend are running
 2. Open `http://localhost:3000` in your browser
 3. Click to upload a Pokémon card image
-4. Wait for Gemini AI to analyze the card
-5. View the estimated price and card details!
+4. Wait for Gemini AI to analyze the card and provide grading scores
+5. Review the AI analysis and edit grading details if needed
+6. Save the card to your collection
+7. View your collection at `/collection` to see all saved cards with their grades
 
 ## 🛠 Tech Stack
 
@@ -77,9 +79,22 @@ DONE (image uploading and analyzing should work now)
 
 ## 📝 API Endpoints
 
-- `POST /analyze-card` - Upload card image for analysis
+- `POST /analyze-card` - Upload card image for AI analysis and grading
+- `POST /save-card` - Save card with grading information to collection
+- `GET /cards` - Get all saved cards in collection
+- `GET /cards/{card_id}` - Get specific card details
+- `GET /cards/{card_id}/image` - Get card image
 - `GET /health` - Health check
 - `GET /docs` - Interactive API documentation (Swagger UI)
+
+## 🎯 Features
+
+- **AI-Powered Analysis**: Uses Gemini 2.0 Flash to analyze card images and provide price estimates
+- **Professional Grading**: AI provides detailed grading scores for centering, corners, edges, and surface
+- **Collection Management**: Save and track your cards with full grading details
+- **Interactive Grading**: Edit and customize grading scores and descriptions
+- **Visual Collection**: Browse your collection with card images and detailed grading information
+- **Responsive Design**: Works on desktop and mobile devices
 
 ## 🔑 Getting a Gemini API Key
 
