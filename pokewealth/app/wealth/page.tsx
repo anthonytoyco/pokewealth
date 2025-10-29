@@ -63,54 +63,54 @@ export default function WealthPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-            <main className="container mx-auto px-4 py-16 max-w-7xl">
+        <div className="min-h-screen bg-white dark:bg-[#1a1f2e]">
+            <main className="container mx-auto px-6 py-12 max-w-7xl">
                 {/* Header */}
-                <div className="text-center mb-12">
-                    <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+                <div className="text-center mb-10 animate-fade-in">
+                    <h1 className="text-6xl font-black text-[#0078ff] mb-3">
                         Portfolio Overview
                     </h1>
-                    <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+                    <p className="text-xl text-[#5a6c7d] dark:text-[#a8b2c1] font-medium mb-8">
                         Track your Pokémon card collection value over time
                     </p>
                 </div>
 
                 {/* Error State */}
                 {error && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-                        <p className="text-red-800 dark:text-red-200">{error}</p>
+                    <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-[#ff4444] rounded-lg p-4 mb-6 animate-fade-in">
+                        <p className="text-[#ff4444] font-semibold">{error}</p>
                     </div>
                 )}
 
                 {/* Portfolio Summary */}
                 {portfolioData && (
                     <div className="mb-8">
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-6">
+                        <div className="bg-[#f8f9fb] dark:bg-[#242b3d] rounded-2xl border border-[#e1e4e8] dark:border-[#3d4556] shadow-sm p-8 mb-6 animate-fade-in">
                             <div className="text-center">
-                                <h2 className="text-2xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                <h2 className="text-lg font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-3 uppercase tracking-wide">
                                     Total Portfolio Value
                                 </h2>
-                                <div className="text-5xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
+                                <div className="text-6xl font-black text-[#0078ff] mb-2">
                                     ${portfolioData.total_value.toLocaleString()}
                                 </div>
-                                <p className="text-gray-600 dark:text-gray-400">
+                                <p className="text-lg text-[#5a6c7d] dark:text-[#a8b2c1] font-medium">
                                     {portfolioData.total_cards} cards in collection
                                 </p>
                             </div>
                         </div>
 
                         {/* Price Changes */}
-                        <div className="mb-8">
-                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                        <div className="mb-8 animate-fade-in">
+                            <h3 className="text-2xl font-black text-[#2c3e50] dark:text-[#f0f0f0] mb-4 uppercase tracking-wide">
                                 Performance
                             </h3>
                             <PortfolioAnalytics analytics={portfolioData} />
                         </div>
 
                         {/* Chart Section */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                        <div className="bg-[#f8f9fb] dark:bg-[#242b3d] rounded-2xl border border-[#e1e4e8] dark:border-[#3d4556] shadow-sm p-8 animate-fade-in">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-0">
+                                <h3 className="text-2xl font-black text-[#2c3e50] dark:text-[#f0f0f0] mb-4 sm:mb-0 uppercase tracking-wide">
                                     Portfolio Value Over Time
                                 </h3>
 

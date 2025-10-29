@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 
 interface GradingCondition {
   score: number
@@ -192,27 +191,33 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <main className="container mx-auto px-4 py-16 max-w-2xl">
+    <div className="min-h-screen bg-white dark:bg-[#1a1f2e]">
+      <main className="container mx-auto px-6 py-12 max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+        <div className="text-center mb-10 animate-fade-in">
+          <h1 className="text-6xl font-black text-white mb-3">
             PokeWealth
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300">
-            Snap your card. Track your value.
+          <p className="text-l text-[#5a6c7d] dark:text-[#a8b2c1] font-medium">
+            Professional Pokémon Card Grading
           </p>
         </div>
 
         {/* Upload Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+        <div className="bg-[#f8f9fb] dark:bg-[#242b3d] rounded-2xl shadow-sm border border-[#e1e4e8] dark:border-[#3d4556] p-8 animate-fade-in">
           <div className="mb-8">
             <label
               htmlFor="card-upload"
-              className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors"
+              className="flex flex-col items-center justify-center w-full h-72 border-2 border-dashed border-[#e1e4e8] dark:border-[#3d4556] rounded-xl cursor-pointer hover:border-[#0078ff] transition-colors relative overflow-hidden bg-white dark:bg-[#1a1f2e]"
             >
+              {/* Floating Pokeballs */}
+              <div className="floating-pokeball"><div className="pokeball"></div></div>
+              <div className="floating-pokeball"><div className="pokeball"></div></div>
+              <div className="floating-pokeball"><div className="pokeball"></div></div>
+              <div className="floating-pokeball"><div className="pokeball"></div></div>
+              
               {selectedImage ? (
-                <div className="relative w-full h-full p-4">
+                <div className="relative w-full h-full p-4 z-10">
                   <Image
                     src={selectedImage}
                     alt="Selected card"
@@ -221,25 +226,27 @@ export default function Home() {
                   />
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg
-                    className="w-12 h-12 mb-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
-                  <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
+                <div className="flex flex-col items-center justify-center pt-5 pb-6 relative z-10">
+                  <div className="w-16 h-16 rounded-full bg-[#0078ff]/10 flex items-center justify-center mb-4">
+                    <svg
+                      className="w-8 h-8 text-[#0078ff]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                  </div>
+                  <p className="mb-2 text-base font-semibold text-[#2c3e50] dark:text-[#f0f0f0]">
+                    Click to upload or drag and drop
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Upload a Pokémon card image
+                  <p className="text-sm text-[#5a6c7d] dark:text-[#a8b2c1]">
+                    JPG, PNG or WEBP
                   </p>
                 </div>
               )}
@@ -255,109 +262,112 @@ export default function Home() {
 
           {/* Loading State */}
           {loading && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">
-                Analyzing card...
+            <div className="text-center py-12 animate-fade-in">
+              <div className="pokeball-loader mx-auto mb-4"></div>
+              <p className="text-[#5a6c7d] dark:text-[#a8b2c1] font-medium">
+                Analyzing your card...
               </p>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-              <p className="text-red-800 dark:text-red-200">{error}</p>
+            <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-[#ff4444] rounded-lg p-4 mb-6 animate-fade-in">
+              <p className="text-[#ff4444] font-semibold">{error}</p>
             </div>
           )}
 
           {/* Results */}
           {result && !loading && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <div className="border-t-2 border-[#e0e0e0] dark:border-[#333333] pt-8 animate-fade-in">
+              <h2 className="text-3xl font-black text-[#1a1a1a] dark:text-white mb-6">
                 {result.card_name}
               </h2>
 
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-6 mb-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                  Estimated Price
+              <div className="bg-[#0078ff]/5 dark:bg-[#0078ff]/10 border-l-4 border-[#0078ff] rounded-xl p-6 mb-6">
+                <p className="text-sm font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-2 uppercase tracking-wide">
+                  Estimated Value
                 </p>
-                <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                <p className="text-4xl font-black text-[#0078ff]">
                   {result.estimated_price}
                 </p>
               </div>
 
               {/* Overall Grade */}
               {result.overall_grade && (
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6 mb-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <div className="bg-white dark:bg-[#242b3d] border border-[#e1e4e8] dark:border-[#3d4556] rounded-xl p-6 mb-6 shadow-sm">
+                  <p className="text-sm font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-2 uppercase tracking-wide">
                     Overall Grade
                   </p>
-                  <p className={`text-3xl font-bold ${getGradeColor(result.overall_grade)}`}>
-                    {result.overall_grade}/10
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <p className={`text-5xl font-black ${getGradeColor(result.overall_grade)}`}>
+                      {result.overall_grade}
+                    </p>
+                    <span className="text-3xl font-bold text-[#5a6c7d] dark:text-[#a8b2c1]">/10</span>
+                  </div>
                 </div>
               )}
 
               {/* Grading Details */}
               {(result.centering || result.corners || result.edges || result.surface) && (
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    AI Grading Analysis
+                <div className="bg-[#f8f9fb] dark:bg-[#242b3d] border border-[#e1e4e8] dark:border-[#3d4556] rounded-xl p-6 mb-6">
+                  <p className="text-lg font-black text-[#2c3e50] dark:text-[#f0f0f0] mb-5 uppercase tracking-wide">
+                    Detailed Grading
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {result.centering && (
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Centering:</span>
-                          <span className={`text-sm font-medium ${getGradeColor(result.centering.score)}`}>
-                            {result.centering.score}/10
+                      <div className="bg-white dark:bg-[#121212] border border-[#e0e0e0] dark:border-[#333333] rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-bold text-[#666666] dark:text-[#b0b0b0] uppercase tracking-wide">Centering</span>
+                          <span className={`text-2xl font-black ${getGradeColor(result.centering.score)}`}>
+                            {result.centering.score}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{result.centering.description}</p>
+                        <p className="text-xs text-[#5a6c7d] dark:text-[#a8b2c1] leading-relaxed">{result.centering.description}</p>
                       </div>
                     )}
                     {result.corners && (
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Corners:</span>
-                          <span className={`text-sm font-medium ${getGradeColor(result.corners.score)}`}>
-                            {result.corners.score}/10
+                      <div className="bg-white dark:bg-[#121212] border border-[#e0e0e0] dark:border-[#333333] rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-bold text-[#666666] dark:text-[#b0b0b0] uppercase tracking-wide">Corners</span>
+                          <span className={`text-2xl font-black ${getGradeColor(result.corners.score)}`}>
+                            {result.corners.score}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{result.corners.description}</p>
+                        <p className="text-xs text-[#666666] dark:text-[#b0b0b0] leading-relaxed">{result.corners.description}</p>
                       </div>
                     )}
                     {result.edges && (
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Edges:</span>
-                          <span className={`text-sm font-medium ${getGradeColor(result.edges.score)}`}>
-                            {result.edges.score}/10
+                      <div className="bg-white dark:bg-[#121212] border border-[#e0e0e0] dark:border-[#333333] rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-bold text-[#666666] dark:text-[#b0b0b0] uppercase tracking-wide">Edges</span>
+                          <span className={`text-2xl font-black ${getGradeColor(result.edges.score)}`}>
+                            {result.edges.score}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{result.edges.description}</p>
+                        <p className="text-xs text-[#666666] dark:text-[#b0b0b0] leading-relaxed">{result.edges.description}</p>
                       </div>
                     )}
                     {result.surface && (
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Surface:</span>
-                          <span className={`text-sm font-medium ${getGradeColor(result.surface.score)}`}>
-                            {result.surface.score}/10
+                      <div className="bg-white dark:bg-[#121212] border border-[#e0e0e0] dark:border-[#333333] rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-bold text-[#666666] dark:text-[#b0b0b0] uppercase tracking-wide">Surface</span>
+                          <span className={`text-2xl font-black ${getGradeColor(result.surface.score)}`}>
+                            {result.surface.score}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{result.surface.description}</p>
+                        <p className="text-xs text-[#666666] dark:text-[#b0b0b0] leading-relaxed">{result.surface.description}</p>
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Details
+              <div className="bg-white dark:bg-[#242b3d] border border-[#e1e4e8] dark:border-[#3d4556] rounded-xl p-6 mb-6 shadow-sm">
+                <p className="text-sm font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-3 uppercase tracking-wide">
+                  Additional Details
                 </p>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-[#2c3e50] dark:text-[#f0f0f0] leading-relaxed">
                   {result.details}
                 </p>
               </div>
@@ -366,14 +376,14 @@ export default function Home() {
               <div className="flex gap-4">
                 <button
                   onClick={() => setShowGradingForm(!showGradingForm)}
-                  className="flex-1 px-6 py-3 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors"
+                  className="flex-1 px-6 py-3 bg-white dark:bg-[#242b3d] border-2 border-[#e1e4e8] dark:border-[#3d4556] hover:border-[#5a6c7d] dark:hover:border-[#5a6c7d] text-[#2c3e50] dark:text-[#f0f0f0] font-bold rounded-lg transition-all duration-200"
                 >
                   {showGradingForm ? 'Hide' : 'Edit'} Grading
                 </button>
                 <button
                   onClick={handleSaveCard}
                   disabled={saving}
-                  className="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-6 py-3 bg-[#0078ff] hover:bg-[#0060d9] text-white font-bold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
                   {saving ? 'Saving...' : 'Save to Collection'}
                 </button>
@@ -383,15 +393,15 @@ export default function Home() {
 
           {/* Grading Form */}
           {showGradingForm && result && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            <div className="border-t-2 border-[#e1e4e8] dark:border-[#3d4556] pt-8 mt-8 animate-fade-in">
+              <h3 className="text-2xl font-black text-[#2c3e50] dark:text-[#f0f0f0] mb-6">
                 Edit Grading Details
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Centering */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-bold text-[#2c3e50] dark:text-[#f0f0f0]">
                     Centering Score (1-10)
                   </label>
                   <input
@@ -401,13 +411,13 @@ export default function Home() {
                     step="0.1"
                     value={gradingData.centering_score}
                     onChange={(e) => setGradingData(prev => ({ ...prev, centering_score: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-[#e1e4e8] dark:border-[#3d4556] rounded-lg focus:ring-2 focus:ring-[#0078ff] dark:bg-[#242b3d] dark:text-[#f0f0f0] bg-white"
                     placeholder="9.5"
                   />
                   <textarea
                     value={gradingData.centering_comment}
                     onChange={(e) => setGradingData(prev => ({ ...prev, centering_comment: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-[#e1e4e8] dark:border-[#3d4556] rounded-lg focus:ring-2 focus:ring-[#0078ff] dark:bg-[#242b3d] dark:text-[#f0f0f0] bg-white"
                     placeholder="Slightly bottom-heavy"
                     rows={2}
                   />
@@ -415,7 +425,7 @@ export default function Home() {
 
                 {/* Corners */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-bold text-[#2c3e50] dark:text-[#f0f0f0]">
                     Corners Score (1-10)
                   </label>
                   <input
@@ -425,13 +435,13 @@ export default function Home() {
                     step="0.1"
                     value={gradingData.corners_score}
                     onChange={(e) => setGradingData(prev => ({ ...prev, corners_score: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-[#e1e4e8] dark:border-[#3d4556] rounded-lg focus:ring-2 focus:ring-[#0078ff] dark:bg-[#242b3d] dark:text-[#f0f0f0] bg-white"
                     placeholder="9.0"
                   />
                   <textarea
                     value={gradingData.corners_description}
                     onChange={(e) => setGradingData(prev => ({ ...prev, corners_description: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-[#e1e4e8] dark:border-[#3d4556] rounded-lg focus:ring-2 focus:ring-[#0078ff] dark:bg-[#242b3d] dark:text-[#f0f0f0] bg-white"
                     placeholder="Two tiny dots of whitening on back corners"
                     rows={2}
                   />
@@ -439,7 +449,7 @@ export default function Home() {
 
                 {/* Edges */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-bold text-[#2c3e50] dark:text-[#f0f0f0]">
                     Edges Score (1-10)
                   </label>
                   <input
@@ -449,13 +459,13 @@ export default function Home() {
                     step="0.1"
                     value={gradingData.edges_score}
                     onChange={(e) => setGradingData(prev => ({ ...prev, edges_score: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-[#e1e4e8] dark:border-[#3d4556] rounded-lg focus:ring-2 focus:ring-[#0078ff] dark:bg-[#242b3d] dark:text-[#f0f0f0] bg-white"
                     placeholder="9.5"
                   />
                   <textarea
                     value={gradingData.edges_description}
                     onChange={(e) => setGradingData(prev => ({ ...prev, edges_description: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-[#e1e4e8] dark:border-[#3d4556] rounded-lg focus:ring-2 focus:ring-[#0078ff] dark:bg-[#242b3d] dark:text-[#f0f0f0] bg-white"
                     placeholder="Near perfect"
                     rows={2}
                   />
@@ -463,7 +473,7 @@ export default function Home() {
 
                 {/* Surface */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-bold text-[#2c3e50] dark:text-[#f0f0f0]">
                     Surface Score (1-10)
                   </label>
                   <input
@@ -473,13 +483,13 @@ export default function Home() {
                     step="0.1"
                     value={gradingData.surface_score}
                     onChange={(e) => setGradingData(prev => ({ ...prev, surface_score: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-[#e1e4e8] dark:border-[#3d4556] rounded-lg focus:ring-2 focus:ring-[#0078ff] dark:bg-[#242b3d] dark:text-[#f0f0f0] bg-white"
                     placeholder="8.0"
                   />
                   <textarea
                     value={gradingData.surface_description}
                     onChange={(e) => setGradingData(prev => ({ ...prev, surface_description: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-[#e1e4e8] dark:border-[#3d4556] rounded-lg focus:ring-2 focus:ring-[#0078ff] dark:bg-[#242b3d] dark:text-[#f0f0f0] bg-white"
                     placeholder="One visible surface scratch on holographic area"
                     rows={2}
                   />
@@ -490,8 +500,10 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          Powered by Gemini AI
+        <div className="text-center mt-4">
+          <p className="text-m text-yellow-500 dark:text-yellow-400">
+            Powered by Gemini AI
+          </p>
         </div>
       </main>
     </div>

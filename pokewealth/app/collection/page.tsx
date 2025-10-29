@@ -101,55 +101,55 @@ export default function Collection() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-            <main className="container mx-auto px-4 py-16 max-w-7xl">
+        <div className="min-h-screen bg-white dark:bg-[#1a1f2e]">
+            <main className="container mx-auto px-6 py-12 max-w-7xl">
                 {/* Header */}
-                <div className="text-center mb-12">
-                    <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+                <div className="text-center mb-10 animate-fade-in">
+                    <h1 className="text-6xl font-black text-[#0078ff] mb-3">
                         My Collection
                     </h1>
-                    <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-                        Track your Pokémon cards and their grades
+                    <p className="text-xl text-[#5a6c7d] dark:text-[#a8b2c1] font-medium">
+                        Track and manage your Pokémon cards
                     </p>
                 </div>
 
                 {/* Error State */}
                 {error && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-                        <p className="text-red-800 dark:text-red-200">{error}</p>
+                    <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-[#ff4444] rounded-lg p-4 mb-6 animate-fade-in">
+                        <p className="text-[#ff4444] font-semibold">{error}</p>
                     </div>
                 )}
 
                 {/* Cards Grid */}
                 {cards.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="w-24 h-24 mx-auto mb-4 text-gray-400">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    <div className="text-center py-16 max-w-2xl mx-auto">
+                        <div className="w-32 h-32 mx-auto mb-6 bg-[#f8f9fb] dark:bg-[#242b3d] rounded-2xl flex items-center justify-center border border-[#e1e4e8] dark:border-[#3d4556]">
+                            <svg className="w-16 h-16 text-[#5a6c7d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        <h3 className="text-2xl font-black text-[#2c3e50] dark:text-[#f0f0f0] mb-3">
                             No cards in your collection yet
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        <p className="text-[#5a6c7d] dark:text-[#a8b2c1] mb-8">
                             Start by uploading your first Pokémon card!
                         </p>
                         <Link
                             href="/"
-                            className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                            className="inline-flex items-center px-8 py-3 bg-[#0078ff] hover:bg-[#0060d9] text-white font-bold rounded-lg transition-colors shadow-sm"
                         >
                             Add Your First Card
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
                         {cards.map((card) => (
                             <div
                                 key={card.id}
-                                className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow"
+                                className="bg-[#f8f9fb] dark:bg-[#242b3d] rounded-2xl border border-[#e1e4e8] dark:border-[#3d4556] overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-in"
                             >
                                 {/* Card Image */}
-                                <div className="relative h-64 bg-gray-100 dark:bg-gray-700">
+                                <div className="relative h-64 bg-white dark:bg-[#1a1f2e]">
                                     {card.image_filename ? (
                                         <>
                                             <img
@@ -189,31 +189,31 @@ export default function Collection() {
 
                                 {/* Card Details */}
                                 <div className="p-6">
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                    <h3 className="text-xl font-black text-[#2c3e50] dark:text-[#f0f0f0] mb-4">
                                         {card.card_name}
                                     </h3>
 
                                     <div className="mb-4">
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                            Estimated Price
+                                        <p className="text-xs font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-2 uppercase tracking-wide">
+                                            Estimated Value
                                         </p>
                                         <div className="flex items-center space-x-2">
-                                            <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                                            <p className="text-2xl font-black text-[#0078ff]">
                                                 {card.estimated_price}
                                             </p>
                                             {priceChanges[card.id] && (
-                                                <div className={`text-sm font-medium ${priceChanges[card.id].percentage >= 0
-                                                        ? 'text-green-600 dark:text-green-400'
-                                                        : 'text-red-600 dark:text-red-400'
+                                                <div className={`text-sm font-bold ${priceChanges[card.id].percentage >= 0
+                                                        ? 'text-green-600'
+                                                        : 'text-red-600'
                                                     }`}>
                                                     {priceChanges[card.id].percentage >= 0 ? '+' : ''}{priceChanges[card.id].percentage.toFixed(1)}%
                                                 </div>
                                             )}
                                         </div>
                                         {priceChanges[card.id] && (
-                                            <p className={`text-xs ${priceChanges[card.id].value >= 0
-                                                    ? 'text-green-600 dark:text-green-400'
-                                                    : 'text-red-600 dark:text-red-400'
+                                            <p className={`text-xs font-semibold mt-1 ${priceChanges[card.id].value >= 0
+                                                    ? 'text-green-600'
+                                                    : 'text-red-600'
                                                 }`}>
                                                 {priceChanges[card.id].value >= 0 ? '+' : ''}${priceChanges[card.id].value.toFixed(2)} from last update
                                             </p>
@@ -222,47 +222,50 @@ export default function Collection() {
 
                                     {/* Overall Grade */}
                                     {card.overall_grade && (
-                                        <div className="mb-4">
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                        <div className="mb-4 pb-4 border-b border-[#e1e4e8] dark:border-[#3d4556]">
+                                            <p className="text-xs font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-2 uppercase tracking-wide">
                                                 Overall Grade
                                             </p>
-                                            <p className={`text-2xl font-bold ${getGradeColor(card.overall_grade)}`}>
-                                                {card.overall_grade}/10
-                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <p className={`text-3xl font-black ${getGradeColor(card.overall_grade)}`}>
+                                                    {card.overall_grade}
+                                                </p>
+                                                <span className="text-xl font-bold text-[#5a6c7d] dark:text-[#a8b2c1]">/10</span>
+                                            </div>
                                         </div>
                                     )}
 
                                     {/* Grading Details */}
-                                    <div className="space-y-2 mb-4">
+                                    <div className="space-y-3 mb-4">
                                         {card.centering_score && (
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-600 dark:text-gray-400">Centering:</span>
-                                                <span className={`text-sm font-medium ${getGradeColor(card.centering_score)}`}>
-                                                    {card.centering_score}/10
+                                                <span className="text-sm font-semibold text-[#5a6c7d] dark:text-[#a8b2c1]">Centering</span>
+                                                <span className={`text-sm font-black ${getGradeColor(card.centering_score)}`}>
+                                                    {card.centering_score}
                                                 </span>
                                             </div>
                                         )}
                                         {card.corners_score && (
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-600 dark:text-gray-400">Corners:</span>
-                                                <span className={`text-sm font-medium ${getGradeColor(card.corners_score)}`}>
-                                                    {card.corners_score}/10
+                                                <span className="text-sm font-semibold text-[#5a6c7d] dark:text-[#a8b2c1]">Corners</span>
+                                                <span className={`text-sm font-black ${getGradeColor(card.corners_score)}`}>
+                                                    {card.corners_score}
                                                 </span>
                                             </div>
                                         )}
                                         {card.edges_score && (
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-600 dark:text-gray-400">Edges:</span>
-                                                <span className={`text-sm font-medium ${getGradeColor(card.edges_score)}`}>
-                                                    {card.edges_score}/10
+                                                <span className="text-sm font-semibold text-[#5a6c7d] dark:text-[#a8b2c1]">Edges</span>
+                                                <span className={`text-sm font-black ${getGradeColor(card.edges_score)}`}>
+                                                    {card.edges_score}
                                                 </span>
                                             </div>
                                         )}
                                         {card.surface_score && (
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-600 dark:text-gray-400">Surface:</span>
-                                                <span className={`text-sm font-medium ${getGradeColor(card.surface_score)}`}>
-                                                    {card.surface_score}/10
+                                                <span className="text-sm font-semibold text-[#5a6c7d] dark:text-[#a8b2c1]">Surface</span>
+                                                <span className={`text-sm font-black ${getGradeColor(card.surface_score)}`}>
+                                                    {card.surface_score}
                                                 </span>
                                             </div>
                                         )}
