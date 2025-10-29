@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 
 interface GradingCondition {
@@ -121,16 +120,17 @@ export default function Collection() {
                                 <div className="relative h-64 bg-gray-100 dark:bg-gray-700">
                                     {card.image_filename ? (
                                         <>
-                                            <Image
+                                            <img
                                                 src={`http://localhost:8000/cards/${card.id}/image`}
                                                 alt={card.card_name}
-                                                fill
-                                                className="object-contain p-4"
+                                                className="w-full h-full object-contain p-4"
                                                 onError={(e) => {
-                                                    console.error('Image load error:', e);
+                                                    const img = e.currentTarget;
+                                                    const failedSrc = (img as HTMLImageElement).currentSrc || img.src;
+                                                    console.error('Image load error for src:', failedSrc);
                                                     // Hide the image and show fallback
-                                                    e.currentTarget.style.display = 'none';
-                                                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                                    img.style.display = 'none';
+                                                    const fallback = img.nextElementSibling as HTMLElement | null;
                                                     if (fallback) fallback.style.display = 'flex';
                                                 }}
                                             />
