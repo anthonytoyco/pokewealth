@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 
 interface GradingCondition {
@@ -39,7 +39,6 @@ export default function Home() {
   const [saving, setSaving] = useState(false)
   const [result, setResult] = useState<CardAnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [showGradingForm, setShowGradingForm] = useState(false)
   const [gradingData, setGradingData] = useState({
