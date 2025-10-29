@@ -29,33 +29,42 @@ body {
 
 /* Floating Pokeball Animations - Bright & Visible */
 @keyframes float-1 {
-  0%, 100% { 
+
+  0%,
+  100% {
     transform: translate(0, 0) rotate(0deg);
     opacity: 0.7;
   }
-  50% { 
+
+  50% {
     transform: translate(30px, -40px) rotate(180deg);
     opacity: 0.7;
   }
 }
 
 @keyframes float-2 {
-  0%, 100% { 
+
+  0%,
+  100% {
     transform: translate(0, 0) rotate(0deg);
     opacity: 0.7;
   }
-  50% { 
+
+  50% {
     transform: translate(-25px, -35px) rotate(-180deg);
     opacity: 0.7;
   }
 }
 
 @keyframes float-3 {
-  0%, 100% { 
+
+  0%,
+  100% {
     transform: translate(0, 0) rotate(0deg);
     opacity: 0.7;
   }
-  50% { 
+
+  50% {
     transform: translate(20px, -30px) rotate(180deg);
     opacity: 0.7;
   }
@@ -120,13 +129,25 @@ body {
 
 /* Simple Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-fade-in {
@@ -155,4 +176,106 @@ body {
   background: #fff;
   border: 3px solid #333;
   border-radius: 50%;
+}
+
+/* Deck & Binder Animations */
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes groupFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes binderPageTurn {
+  0% {
+    transform: rotateY(0deg);
+  }
+
+  50% {
+    transform: rotateY(5deg);
+  }
+
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+.card-animate {
+  animation: cardSlideIn 0.3s ease-out forwards;
+}
+
+.group-animate {
+  animation: groupFadeIn 0.4s ease-out forwards;
+}
+
+.binder-page-turn {
+  animation: binderPageTurn 0.6s ease-in-out;
+}
+
+/* Binder Visual Effects */
+.binder-spine {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.binder-ring {
+  background: radial-gradient(circle, #c0c0c0 0%, #a0a0a0 100%);
+  border: 2px solid #808080;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Hover Effects */
+.card-hover-lift {
+  transition: all 0.2s ease-out;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Deck Stack Effect */
+.deck-stack {
+  position: relative;
+}
+
+.deck-stack::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: -2px;
+  bottom: -2px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.deck-stack::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: -4px;
+  bottom: -4px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: inherit;
+  z-index: -2;
 }
