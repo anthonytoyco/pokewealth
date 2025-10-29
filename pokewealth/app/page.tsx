@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 
 interface GradingCondition {
@@ -36,6 +36,7 @@ export default function Home() {
   const [saving, setSaving] = useState(false)
   const [result, setResult] = useState<CardAnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [showGradingForm, setShowGradingForm] = useState(false)
   const [gradingData, setGradingData] = useState({
     centering_score: '',
@@ -47,6 +48,16 @@ export default function Home() {
     surface_score: '',
     surface_description: ''
   })
+
+  // Auto-dismiss success message after 5 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -64,6 +75,7 @@ export default function Home() {
     // Upload to backend
     setLoading(true)
     setError(null)
+    setSuccessMessage(null)
     setResult(null)
     setShowGradingForm(false)
 
@@ -124,6 +136,7 @@ export default function Home() {
 
     setSaving(true)
     setError(null)
+    setSuccessMessage(null)
 
     try {
       const formData = new FormData()
@@ -214,7 +227,7 @@ export default function Home() {
       })
 
       // Show success message
-      alert('Card saved successfully!')
+      setSuccessMessage('Card saved successfully!')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -323,6 +336,31 @@ export default function Home() {
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-[#ff4444] rounded-lg p-4 mb-6 animate-fade-in">
               <p className="text-[#ff4444] font-semibold">{error}</p>
+            </div>
+          )}
+
+          {/* Success Toast */}
+          {successMessage && (
+            <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 rounded-lg p-4 shadow-2xl animate-fade-in max-w-md">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-green-800 dark:text-green-200 font-bold text-lg">{successMessage}</p>
+                  <p className="text-green-600 dark:text-green-400 text-sm mt-1">Your card has been added to your collection!</p>
+                </div>
+                <button
+                  onClick={() => setSuccessMessage(null)}
+                  className="flex-shrink-0 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
           )}
 
