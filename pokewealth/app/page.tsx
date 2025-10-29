@@ -17,6 +17,9 @@ interface CardAnalysisResult {
   edges?: GradingCondition
   surface?: GradingCondition
   overall_grade?: number
+  is_authentic?: boolean
+  authenticity_confidence?: number
+  authenticity_notes?: string
 }
 
 export default function Home() {
@@ -121,6 +124,15 @@ export default function Home() {
       formData.append('card_name', result.card_name)
       formData.append('estimated_price', result.estimated_price)
       formData.append('details', result.details)
+      if (typeof result.is_authentic !== 'undefined') {
+        formData.append('is_authentic', String(result.is_authentic))
+      }
+      if (typeof result.authenticity_confidence !== 'undefined') {
+        formData.append('authenticity_confidence', String(result.authenticity_confidence))
+      }
+      if (result.authenticity_notes) {
+        formData.append('authenticity_notes', result.authenticity_notes)
+      }
 
       // Add grading fields only if they have non-empty values
       if (gradingData.centering_score && String(gradingData.centering_score).trim() !== '') {
@@ -191,7 +203,7 @@ export default function Home() {
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen relative"
       style={{
         backgroundImage: 'url(/pokemon-background.jpg)',
@@ -203,7 +215,7 @@ export default function Home() {
     >
       {/* White overlay */}
       <div className="absolute inset-0 bg-white/40 dark:bg-[#1a1f2e]/40 z-0" />
-      
+
       <main className="container mx-auto px-6 pt-15 pb-16 max-w-4xl relative z-10">
         {/* Header */}
         <div className="text-center mb-10 animate-fade-in">
@@ -225,7 +237,7 @@ export default function Home() {
               <div className="floating-pokeball"><div className="pokeball"></div></div>
               <div className="floating-pokeball"><div className="pokeball"></div></div>
               <div className="floating-pokeball"><div className="pokeball"></div></div>
-              
+
               {selectedImage ? (
                 <div className="relative w-full h-full p-4 z-10">
                   <Image
@@ -302,6 +314,28 @@ export default function Home() {
                   {result.estimated_price}
                 </p>
               </div>
+
+              {/* Authenticity Section */}
+              {(typeof result.is_authentic !== 'undefined') && (
+                <div className="bg-white dark:bg-[#242b3d] border border-[#e1e4e8] dark:border-[#3d4556] rounded-xl p-6 mb-6 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-2 uppercase tracking-wide">Authenticity</p>
+                      <div className="flex items-center gap-3">
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${result.is_authentic ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>
+                          {result.is_authentic ? 'Authentic' : 'Potential Counterfeit'}
+                        </span>
+                        {typeof result.authenticity_confidence !== 'undefined' && (
+                          <span className="text-sm text-[#5a6c7d] dark:text-[#a8b2c1]">Confidence: {Math.round(result.authenticity_confidence)}%</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {result.authenticity_notes && (
+                    <p className="mt-3 text-sm text-[#5a6c7d] dark:text-[#a8b2c1]">{result.authenticity_notes}</p>
+                  )}
+                </div>
+              )}
 
               {/* Overall Grade */}
               {result.overall_grade && (
@@ -385,10 +419,11 @@ export default function Home() {
               {/* Action Buttons */}
               <div className="flex gap-4">
                 <button
-                  onClick={() => setShowGradingForm(!showGradingForm)}
-                  className="flex-1 px-6 py-3 bg-white dark:bg-[#242b3d] border-2 border-[#e1e4e8] dark:border-[#3d4556] hover:border-[#5a6c7d] dark:hover:border-[#5a6c7d] text-[#2c3e50] dark:text-[#f0f0f0] font-bold rounded-lg transition-all duration-200"
+                  disabled
+                  className="flex-1 px-6 py-3 bg-white dark:bg-[#242b3d] border-2 border-[#e1e4e8] dark:border-[#3d4556] text-[#2c3e50] dark:text-[#f0f0f0] font-bold rounded-lg opacity-60 cursor-not-allowed"
+                  title="Grading is AI-generated and cannot be edited"
                 >
-                  {showGradingForm ? 'Hide' : 'Edit'} Grading
+                  Grading is AI-generated
                 </button>
                 <button
                   onClick={handleSaveCard}
@@ -510,7 +545,7 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-4">  
+        <div className="text-center mt-4">
           <p className="text-xl text-[#ffffff]">
             Powered by <span className="text-l font-bold text-yellow-500 dark:text-yellow-400">Gemini AI</span>
           </p>

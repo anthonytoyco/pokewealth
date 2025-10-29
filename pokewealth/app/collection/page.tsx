@@ -24,6 +24,9 @@ interface Card {
     surface_score?: number
     surface_description?: string
     overall_grade?: number
+    is_authentic?: boolean
+    authenticity_confidence?: number
+    authenticity_notes?: string
 }
 
 interface PriceChange {
@@ -153,7 +156,8 @@ export default function Collection() {
                                     {card.image_filename ? (
                                         <>
                                             <img
-                                                src={`http://localhost:8000/cards/${card.id}/image`}
+                                                key={card.id}
+                                                src={`http://localhost:8000/cards/${card.id}/image?v=${card.id}`}
                                                 alt={card.card_name}
                                                 className="w-full h-full object-contain p-4"
                                                 onError={(e) => {
@@ -189,9 +193,16 @@ export default function Collection() {
 
                                 {/* Card Details */}
                                 <div className="p-6">
-                                    <h3 className="text-xl font-black text-[#2c3e50] dark:text-[#f0f0f0] mb-4">
-                                        {card.card_name}
-                                    </h3>
+                                    <div className="mb-4 flex items-center justify-between gap-3">
+                                        <h3 className="text-xl font-black text-[#2c3e50] dark:text-[#f0f0f0]">
+                                            {card.card_name}
+                                        </h3>
+                                        {typeof card.is_authentic !== 'undefined' && (
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${card.is_authentic ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>
+                                                {card.is_authentic ? 'Authentic' : 'Counterfeit'}
+                                            </span>
+                                        )}
+                                    </div>
 
                                     <div className="mb-4">
                                         <p className="text-xs font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-2 uppercase tracking-wide">
@@ -203,8 +214,8 @@ export default function Collection() {
                                             </p>
                                             {priceChanges[card.id] && (
                                                 <div className={`text-sm font-bold ${priceChanges[card.id].percentage >= 0
-                                                        ? 'text-green-600'
-                                                        : 'text-red-600'
+                                                    ? 'text-green-600'
+                                                    : 'text-red-600'
                                                     }`}>
                                                     {priceChanges[card.id].percentage >= 0 ? '+' : ''}{priceChanges[card.id].percentage.toFixed(1)}%
                                                 </div>
@@ -212,8 +223,8 @@ export default function Collection() {
                                         </div>
                                         {priceChanges[card.id] && (
                                             <p className={`text-xs font-semibold mt-1 ${priceChanges[card.id].value >= 0
-                                                    ? 'text-green-600'
-                                                    : 'text-red-600'
+                                                ? 'text-green-600'
+                                                : 'text-red-600'
                                                 }`}>
                                                 {priceChanges[card.id].value >= 0 ? '+' : ''}${priceChanges[card.id].value.toFixed(2)} from last update
                                             </p>

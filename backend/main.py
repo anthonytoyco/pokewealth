@@ -47,6 +47,9 @@ class CardAnalysisResponse(BaseModel):
     edges: Optional[GradingCondition] = None
     surface: Optional[GradingCondition] = None
     overall_grade: Optional[float] = None
+    is_authentic: Optional[bool] = None
+    authenticity_confidence: Optional[float] = None
+    authenticity_notes: Optional[str] = None
 
 class CardCreate(BaseModel):
     card_name: str
@@ -77,6 +80,9 @@ class CardResponse(BaseModel):
     surface_score: Optional[float] = None
     surface_description: Optional[str] = None
     overall_grade: Optional[float] = None
+    is_authentic: Optional[bool] = None
+    authenticity_confidence: Optional[float] = None
+    authenticity_notes: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -146,6 +152,10 @@ async def analyze_card(file: UploadFile = File(...)):
            - Corners: Score and description of corner wear/condition
            - Edges: Score and description of edge condition
            - Surface: Score and description of surface flaws/condition
+        5. Authenticity assessment:
+           - is_authentic: true/false if the card appears authentic
+           - authenticity_confidence: number 0-100 confidence
+           - authenticity_notes: brief reasons and any counterfeit flags (e.g., wrong font, misaligned borders, holo pattern issues)
         
         Format your response as JSON:
         {
@@ -167,7 +177,10 @@ async def analyze_card(file: UploadFile = File(...)):
             "surface": {
                 "score": 8.0,
                 "description": "One visible surface scratch on holographic area"
-            }
+            },
+            "is_authentic": true,
+            "authenticity_confidence": 92.5,
+            "authenticity_notes": "Holo pattern matches, font and border alignment correct"
         }
         """
         
@@ -205,7 +218,10 @@ async def analyze_card(file: UploadFile = File(...)):
             corners=GradingCondition(**result.get("corners", {})) if result.get("corners") else None,
             edges=GradingCondition(**result.get("edges", {})) if result.get("edges") else None,
             surface=GradingCondition(**result.get("surface", {})) if result.get("surface") else None,
-            overall_grade=overall_grade
+            overall_grade=overall_grade,
+            is_authentic=result.get("is_authentic"),
+            authenticity_confidence=result.get("authenticity_confidence"),
+            authenticity_notes=result.get("authenticity_notes")
         )
         
     except json.JSONDecodeError:
@@ -232,6 +248,9 @@ async def save_card(
     edges_description: Optional[str] = Form(None),
     surface_score: Optional[float] = Form(None),
     surface_description: Optional[str] = Form(None),
+    is_authentic: Optional[bool] = Form(None),
+    authenticity_confidence: Optional[float] = Form(None),
+    authenticity_notes: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     """
@@ -255,7 +274,10 @@ async def save_card(
             edges_score=edges_score,
             edges_description=edges_description,
             surface_score=surface_score,
-            surface_description=surface_description
+            surface_description=surface_description,
+            is_authentic=is_authentic,
+            authenticity_confidence=authenticity_confidence,
+            authenticity_notes=authenticity_notes
         )
         
         # Calculate overall grade
@@ -294,7 +316,10 @@ async def save_card(
             edges_description=db_card.edges_description,
             surface_score=db_card.surface_score,
             surface_description=db_card.surface_description,
-            overall_grade=db_card.overall_grade
+            overall_grade=db_card.overall_grade,
+            is_authentic=db_card.is_authentic,
+            authenticity_confidence=db_card.authenticity_confidence,
+            authenticity_notes=db_card.authenticity_notes
         )
         
     except Exception as e:
@@ -322,7 +347,10 @@ async def get_cards(db: Session = Depends(get_db)):
             edges_description=card.edges_description,
             surface_score=card.surface_score,
             surface_description=card.surface_description,
-            overall_grade=card.overall_grade
+            overall_grade=card.overall_grade,
+            is_authentic=card.is_authentic,
+            authenticity_confidence=card.authenticity_confidence,
+            authenticity_notes=card.authenticity_notes
         )
         for card in cards
     ]
@@ -351,7 +379,10 @@ async def get_card(card_id: int, db: Session = Depends(get_db)):
         edges_description=card.edges_description,
         surface_score=card.surface_score,
         surface_description=card.surface_description,
-        overall_grade=card.overall_grade
+        overall_grade=card.overall_grade,
+        is_authentic=card.is_authentic,
+        authenticity_confidence=card.authenticity_confidence,
+        authenticity_notes=card.authenticity_notes
     )
 
 @app.get("/cards/{card_id}/image")
