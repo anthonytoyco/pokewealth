@@ -392,10 +392,10 @@ async def analyze_card(file: UploadFile = File(...)):
                 **result.get("edges", {})) if result.get("edges") else None,
             surface=GradingCondition(
                 **result.get("surface", {})) if result.get("surface") else None,
-            overall_grade=overall_grade, ,
+            overall_grade=overall_grade,
             is_authentic=result.get("is_authentic"),
             authenticity_confidence=result.get("authenticity_confidence"),
-            authenticity_notes=result.get("authenticity_notes")
+            authenticity_notes=result.get("authenticity_notes"),
             market_price=market_price,
             price_source=price_source,
             tcg_player_id=tcg_player_id,
@@ -479,8 +479,7 @@ async def save_card(
             surface_description=surface_description,
             is_authentic=is_authentic,
             authenticity_confidence=authenticity_confidence,
-            authenticity_notes=authenticity_notes
-            surface_description=surface_description,
+            authenticity_notes=authenticity_notes,
             market_price=market_price,
             price_source=price_source,
             tcg_player_id=tcg_player_id,
@@ -489,7 +488,7 @@ async def save_card(
             rarity=rarity,
             psa_10_price=psa_10_price,
             psa_9_price=psa_9_price,
-            psa_8_price=psa_8_price
+            psa_8_price=psa_8_price,
         )
 
         # Calculate overall grade
@@ -540,8 +539,7 @@ async def save_card(
             rarity=db_card.rarity,
             psa_10_price=db_card.psa_10_price,
             psa_9_price=db_card.psa_9_price,
-            psa_8_price=db_card.psa_8_price
-            overall_grade=db_card.overall_grade,
+            psa_8_price=db_card.psa_8_price,
             is_authentic=db_card.is_authentic,
             authenticity_confidence=db_card.authenticity_confidence,
             authenticity_notes=db_card.authenticity_notes
@@ -577,8 +575,7 @@ async def get_cards(db: Session = Depends(get_db)):
             overall_grade=card.overall_grade,
             is_authentic=card.is_authentic,
             authenticity_confidence=card.authenticity_confidence,
-            authenticity_notes=card.authenticity_notes
-            overall_grade=card.overall_grade,
+            authenticity_notes=card.authenticity_notes,
             market_price=card.market_price,
             price_source=card.price_source,
             tcg_player_id=card.tcg_player_id,
@@ -626,8 +623,7 @@ async def get_card(card_id: int, db: Session = Depends(get_db)):
         rarity=card.rarity,
         psa_10_price=card.psa_10_price,
         psa_9_price=card.psa_9_price,
-        psa_8_price=card.psa_8_price
-        overall_grade=card.overall_grade,
+        psa_8_price=card.psa_8_price,
         is_authentic=card.is_authentic,
         authenticity_confidence=card.authenticity_confidence,
         authenticity_notes=card.authenticity_notes
