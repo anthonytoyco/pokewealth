@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from typing import List, Optional
 from models import PokemonCard, PriceHistory
 from database import get_db, create_tables
+from pokemon_api import pokemon_api
 
 load_dotenv()
 
@@ -34,9 +35,11 @@ if not GEMINI_API_KEY:
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-2.0-flash-exp")
 
+
 class GradingCondition(BaseModel):
     score: float
     description: str
+
 
 class CardAnalysisResponse(BaseModel):
     card_name: str
@@ -47,6 +50,18 @@ class CardAnalysisResponse(BaseModel):
     edges: Optional[GradingCondition] = None
     surface: Optional[GradingCondition] = None
     overall_grade: Optional[float] = None
+    # Real market data from Pokemon API
+    market_price: Optional[float] = None
+    price_source: Optional[str] = None  # "api" or "ai"
+    tcg_player_id: Optional[str] = None
+    set_name: Optional[str] = None
+    card_number: Optional[str] = None
+    rarity: Optional[str] = None
+    # PSA prices if available
+    psa_10_price: Optional[float] = None
+    psa_9_price: Optional[float] = None
+    psa_8_price: Optional[float] = None
+
 
 class CardCreate(BaseModel):
     card_name: str
@@ -60,6 +75,7 @@ class CardCreate(BaseModel):
     edges_description: Optional[str] = None
     surface_score: Optional[float] = None
     surface_description: Optional[str] = None
+
 
 class CardResponse(BaseModel):
     id: int
@@ -77,9 +93,20 @@ class CardResponse(BaseModel):
     surface_score: Optional[float] = None
     surface_description: Optional[str] = None
     overall_grade: Optional[float] = None
+    # Real market data
+    market_price: Optional[float] = None
+    price_source: Optional[str] = None
+    tcg_player_id: Optional[str] = None
+    set_name: Optional[str] = None
+    card_number: Optional[str] = None
+    rarity: Optional[str] = None
+    psa_10_price: Optional[float] = None
+    psa_9_price: Optional[float] = None
+    psa_8_price: Optional[float] = None
 
     class Config:
         from_attributes = True
+
 
 class PriceHistoryResponse(BaseModel):
     id: int
@@ -91,57 +118,68 @@ class PriceHistoryResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 def parse_price_string(price_str: str) -> float:
     """Parse price string like '$50 - $100' or '$75' and return average or single value"""
     import re
-    
+
     # Remove currency symbols and extract numbers
     numbers = re.findall(r'[\d,]+\.?\d*', price_str.replace(',', ''))
-    
+
     if not numbers:
         return 0.0
-    
+
     # Convert to floats
     prices = [float(num) for num in numbers]
-    
+
     # Return average if range, single value if not
     return sum(prices) / len(prices)
+
 
 def create_price_history_entry(card_id: int, price_display: str, db: Session):
     """Create a new price history entry for a card"""
     price_value = parse_price_string(price_display)
-    
+
     price_entry = PriceHistory(
         card_id=card_id,
         price=price_value,
         price_display=price_display
     )
-    
+
     db.add(price_entry)
     db.commit()
     return price_entry
+
 
 @app.get("/")
 async def root():
     return {"message": "PokeWealth API - Snap your card. Track your value."}
 
+
 @app.post("/analyze-card", response_model=CardAnalysisResponse)
 async def analyze_card(file: UploadFile = File(...)):
     """
-    Upload a Pokemon card image and get AI-powered price analysis
+    Upload a Pokemon card image and get AI-powered analysis with real market pricing
     """
+    print("\n" + "="*80)
+    print("🎴 NEW CARD ANALYSIS REQUEST")
+    print("="*80)
+
     try:
         # Read and process image
         contents = await file.read()
         image = Image.open(BytesIO(contents))
-        
-        # Prepare prompt for Gemini
+        print(f"📸 Image received: {file.filename}")
+
+        # Step 1: Use Gemini to identify the card and grade it
+        print("\n🤖 STEP 1: Calling Gemini AI for card identification and grading...")
         prompt = """
         You are a Pokemon card expert and professional grader. Analyze this Pokemon card image and provide:
-        1. The exact card name
-        2. The estimated market price (provide a realistic price range in USD)
-        3. Brief details about the card (set, rarity, condition assessment)
-        4. Professional grading assessment for each category (score 1-10):
+        1. The exact card name (just the Pokemon name and card variant, e.g. "Charizard ex" or "Pikachu VMAX")
+        2. The set name (e.g. "Base Set", "Temporal Forces", "Crown Zenith")
+        3. Card number if visible (e.g. "4/102" or "123")
+        4. Brief details about the card (set, rarity, condition assessment)
+        5. Professional grading assessment for each category (score 1-10):
            - Centering: Score and comment about card centering
            - Corners: Score and description of corner wear/condition
            - Edges: Score and description of edge condition
@@ -150,7 +188,8 @@ async def analyze_card(file: UploadFile = File(...)):
         Format your response as JSON:
         {
             "card_name": "Card Name Here",
-            "estimated_price": "$XX - $XX USD",
+            "set_name": "Set Name Here",
+            "card_number": "123/456",
             "details": "Brief description including set, rarity, and condition",
             "centering": {
                 "score": 9.5,
@@ -170,7 +209,7 @@ async def analyze_card(file: UploadFile = File(...)):
             }
         }
         """
-        
+
         # Call Gemini API
         response = model.generate_content(
             [prompt, image],
@@ -179,11 +218,25 @@ async def analyze_card(file: UploadFile = File(...)):
                 "response_mime_type": "application/json"
             }
         )
-        
+
         # Parse response
         import json
         result = json.loads(response.text)
-        
+
+        print("\n✅ Gemini AI Response:")
+        print(f"   Card Name: {result.get('card_name', 'Unknown')}")
+        print(f"   Set: {result.get('set_name', 'Unknown')}")
+        print(f"   Card Number: {result.get('card_number', 'Unknown')}")
+        if result.get('centering'):
+            print(
+                f"   Centering: {result['centering'].get('score', 'N/A')}/10")
+        if result.get('corners'):
+            print(f"   Corners: {result['corners'].get('score', 'N/A')}/10")
+        if result.get('edges'):
+            print(f"   Edges: {result['edges'].get('score', 'N/A')}/10")
+        if result.get('surface'):
+            print(f"   Surface: {result['surface'].get('score', 'N/A')}/10")
+
         # Calculate overall grade
         grades = []
         if result.get("centering", {}).get("score"):
@@ -194,29 +247,167 @@ async def analyze_card(file: UploadFile = File(...)):
             grades.append(result["edges"]["score"])
         if result.get("surface", {}).get("score"):
             grades.append(result["surface"]["score"])
-        
+
         overall_grade = round(sum(grades) / len(grades), 1) if grades else None
-        
+        if overall_grade:
+            print(f"   Overall Grade: {overall_grade}/10")
+
+        # Step 2: Fetch real market prices from Pokemon Price Tracker API
+        card_name = result.get("card_name", "Unknown Card")
+        set_name = result.get("set_name")
+
+        print(f"\n💰 STEP 2: Fetching real market prices for '{card_name}'...")
+
+        market_price = None
+        price_source = "ai"
+        estimated_price = "Unable to determine"
+        tcg_player_id = None
+        actual_set_name = set_name
+        card_number = result.get("card_number")
+        rarity = None
+        psa_10_price = None
+        psa_9_price = None
+        psa_8_price = None
+
+        # Try to fetch real market data if API key is configured
+        try:
+            if pokemon_api.api_key:
+                print(f"   🔑 Pokemon API Key configured - searching database...")
+                if set_name:
+                    print(
+                        f"   🔍 Searching for: '{card_name}' in set '{set_name}'")
+                else:
+                    print(
+                        f"   🔍 Searching for: '{card_name}' (no set specified)")
+
+                # Search for the card with PSA data
+                card_data = await pokemon_api.get_card_with_psa_data(card_name, set_name)
+
+                if card_data:
+                    print(f"\n   ✅ Card found in Pokemon API database!")
+                    # Extract price information
+                    price_info = pokemon_api.format_price_data(card_data)
+                    psa_info = pokemon_api.extract_psa_prices(card_data)
+
+                    print(f"\n   📊 Market Data:")
+                    if price_info["market_price"]:
+                        market_price = price_info["market_price"]
+                        estimated_price = f"${market_price:.2f}"
+                        price_source = "api"
+                        print(f"      💵 Market Price: ${market_price:.2f}")
+                    elif price_info["price_range"]:
+                        estimated_price = price_info["price_range"]
+                        price_source = "api"
+                        print(f"      💵 Price Range: {estimated_price}")
+
+                    # Extract additional card details
+                    tcg_player_id = card_data.get("tcgplayerId")
+                    actual_set_name = card_data.get("set", set_name)
+                    card_number = card_data.get("number", card_number)
+                    rarity = card_data.get("rarity")
+
+                    if actual_set_name:
+                        print(f"      📦 Set: {actual_set_name}")
+                    if card_number:
+                        print(f"      #️⃣  Number: {card_number}")
+                    if rarity:
+                        print(f"      ⭐ Rarity: {rarity}")
+                    if tcg_player_id:
+                        print(f"      🆔 TCGPlayer ID: {tcg_player_id}")
+
+                    # PSA prices
+                    psa_10_price = psa_info.get("psa_10")
+                    psa_9_price = psa_info.get("psa_9")
+                    psa_8_price = psa_info.get("psa_8")
+
+                    if psa_10_price or psa_9_price or psa_8_price:
+                        print(f"\n   🏆 PSA Graded Values:")
+                        if psa_10_price:
+                            print(f"      PSA 10: ${psa_10_price:.2f}")
+                        if psa_9_price:
+                            print(f"      PSA 9: ${psa_9_price:.2f}")
+                        if psa_8_price:
+                            print(f"      PSA 8: ${psa_8_price:.2f}")
+
+                    # Update details with real market info
+                    if rarity:
+                        result["details"] = f"{actual_set_name} - {rarity} - {result.get('details', '')}"
+                else:
+                    # Card not found in API, keep AI estimate
+                    print(
+                        f"   ⚠️  Card '{card_name}' not found in Pokemon API")
+                    print(f"   ℹ️  Will use AI price estimate instead")
+            else:
+                print("   ⚠️  Pokemon API key not configured")
+                print("   ℹ️  Using AI estimate only")
+        except Exception as api_error:
+            print(f"   ❌ Error fetching real prices: {api_error}")
+            print(f"   ℹ️  Falling back to AI estimate")
+
+        # If we couldn't get real pricing, generate an AI estimate
+        if price_source == "ai" and estimated_price == "Unable to determine":
+            print(f"\n   🤖 Generating AI price estimate...")
+            # Ask Gemini for a price estimate as fallback
+            price_prompt = f"What is the approximate market price for a {card_name} from {set_name or 'unknown set'} in USD? Provide just a price range like '$X - $Y' or single value '$X'."
+            try:
+                price_response = model.generate_content(price_prompt)
+                estimated_price = price_response.text.strip()
+                print(f"   💭 AI Estimate: {estimated_price}")
+            except:
+                estimated_price = "Price unavailable"
+                print(f"   ❌ Unable to generate price estimate")
+
+        print(f"\n" + "="*80)
+        print(f"📋 FINAL ANALYSIS SUMMARY")
+        print("="*80)
+        print(f"   Card: {card_name}")
+        print(f"   Price: {estimated_price} (Source: {price_source.upper()})")
+        if overall_grade:
+            print(f"   Grade: {overall_grade}/10")
+        print("="*80 + "\n")
+
         return CardAnalysisResponse(
-            card_name=result.get("card_name", "Unknown Card"),
-            estimated_price=result.get("estimated_price", "Unable to determine"),
+            card_name=card_name,
+            estimated_price=estimated_price,
             details=result.get("details", "No details available"),
-            centering=GradingCondition(**result.get("centering", {})) if result.get("centering") else None,
-            corners=GradingCondition(**result.get("corners", {})) if result.get("corners") else None,
-            edges=GradingCondition(**result.get("edges", {})) if result.get("edges") else None,
-            surface=GradingCondition(**result.get("surface", {})) if result.get("surface") else None,
-            overall_grade=overall_grade
+            centering=GradingCondition(
+                **result.get("centering", {})) if result.get("centering") else None,
+            corners=GradingCondition(
+                **result.get("corners", {})) if result.get("corners") else None,
+            edges=GradingCondition(
+                **result.get("edges", {})) if result.get("edges") else None,
+            surface=GradingCondition(
+                **result.get("surface", {})) if result.get("surface") else None,
+            overall_grade=overall_grade,
+            market_price=market_price,
+            price_source=price_source,
+            tcg_player_id=tcg_player_id,
+            set_name=actual_set_name,
+            card_number=card_number,
+            rarity=rarity,
+            psa_10_price=psa_10_price,
+            psa_9_price=psa_9_price,
+            psa_8_price=psa_8_price
         )
-        
-    except json.JSONDecodeError:
+
+    except json.JSONDecodeError as e:
         # Fallback if JSON parsing fails
+        print(f"\n❌ ERROR: Failed to parse Gemini AI response")
+        print(f"   Details: {str(e)}")
+        print("="*80 + "\n")
         return CardAnalysisResponse(
             card_name="Analysis Error",
             estimated_price="Unable to determine",
-            details=response.text if 'response' in locals() else "Error analyzing card"
+            details=response.text if 'response' in locals() else "Error analyzing card",
+            price_source="error"
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error analyzing card: {str(e)}")
+        print(f"\n❌ CRITICAL ERROR during card analysis")
+        print(f"   Error: {str(e)}")
+        print("="*80 + "\n")
+        raise HTTPException(
+            status_code=500, detail=f"Error analyzing card: {str(e)}")
+
 
 @app.post("/save-card", response_model=CardResponse)
 async def save_card(
@@ -232,15 +423,25 @@ async def save_card(
     edges_description: Optional[str] = Form(None),
     surface_score: Optional[float] = Form(None),
     surface_description: Optional[str] = Form(None),
+    market_price: Optional[float] = Form(None),
+    price_source: Optional[str] = Form(None),
+    tcg_player_id: Optional[str] = Form(None),
+    set_name: Optional[str] = Form(None),
+    card_number: Optional[str] = Form(None),
+    rarity: Optional[str] = Form(None),
+    psa_10_price: Optional[float] = Form(None),
+    psa_9_price: Optional[float] = Form(None),
+    psa_8_price: Optional[float] = Form(None),
     db: Session = Depends(get_db)
 ):
     """
-    Save a Pokemon card with grading information to the database
+    Save a Pokemon card with grading information and market data to the database
     """
+    print(f"\n💾 Saving card: {card_name} (${estimated_price})")
     try:
         # Read image data
         image_contents = await image_file.read()
-        
+
         # Create new card record
         db_card = PokemonCard(
             card_name=card_name,
@@ -255,9 +456,18 @@ async def save_card(
             edges_score=edges_score,
             edges_description=edges_description,
             surface_score=surface_score,
-            surface_description=surface_description
+            surface_description=surface_description,
+            market_price=market_price,
+            price_source=price_source,
+            tcg_player_id=tcg_player_id,
+            set_name=set_name,
+            card_number=card_number,
+            rarity=rarity,
+            psa_10_price=psa_10_price,
+            psa_9_price=psa_9_price,
+            psa_8_price=psa_8_price
         )
-        
+
         # Calculate overall grade
         grades = []
         if centering_score:
@@ -268,17 +478,20 @@ async def save_card(
             grades.append(edges_score)
         if surface_score:
             grades.append(surface_score)
-        
+
         if grades:
             db_card.overall_grade = round(sum(grades) / len(grades), 1)
-        
+
         db.add(db_card)
         db.commit()
         db.refresh(db_card)
-        
+
+        print(f"   ✅ Card saved to database with ID: {db_card.id}")
+
         # Create initial price history entry
         create_price_history_entry(db_card.id, estimated_price, db)
-        
+        print(f"   📊 Price history entry created\n")
+
         return CardResponse(
             id=db_card.id,
             card_name=db_card.card_name,
@@ -294,11 +507,22 @@ async def save_card(
             edges_description=db_card.edges_description,
             surface_score=db_card.surface_score,
             surface_description=db_card.surface_description,
-            overall_grade=db_card.overall_grade
+            overall_grade=db_card.overall_grade,
+            market_price=db_card.market_price,
+            price_source=db_card.price_source,
+            tcg_player_id=db_card.tcg_player_id,
+            set_name=db_card.set_name,
+            card_number=db_card.card_number,
+            rarity=db_card.rarity,
+            psa_10_price=db_card.psa_10_price,
+            psa_9_price=db_card.psa_9_price,
+            psa_8_price=db_card.psa_8_price
         )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error saving card: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error saving card: {str(e)}")
+
 
 @app.get("/cards", response_model=List[CardResponse])
 async def get_cards(db: Session = Depends(get_db)):
@@ -322,10 +546,20 @@ async def get_cards(db: Session = Depends(get_db)):
             edges_description=card.edges_description,
             surface_score=card.surface_score,
             surface_description=card.surface_description,
-            overall_grade=card.overall_grade
+            overall_grade=card.overall_grade,
+            market_price=card.market_price,
+            price_source=card.price_source,
+            tcg_player_id=card.tcg_player_id,
+            set_name=card.set_name,
+            card_number=card.card_number,
+            rarity=card.rarity,
+            psa_10_price=card.psa_10_price,
+            psa_9_price=card.psa_9_price,
+            psa_8_price=card.psa_8_price
         )
         for card in cards
     ]
+
 
 @app.get("/cards/{card_id}", response_model=CardResponse)
 async def get_card(card_id: int, db: Session = Depends(get_db)):
@@ -335,7 +569,7 @@ async def get_card(card_id: int, db: Session = Depends(get_db)):
     card = db.query(PokemonCard).filter(PokemonCard.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
-    
+
     return CardResponse(
         id=card.id,
         card_name=card.card_name,
@@ -351,8 +585,18 @@ async def get_card(card_id: int, db: Session = Depends(get_db)):
         edges_description=card.edges_description,
         surface_score=card.surface_score,
         surface_description=card.surface_description,
-        overall_grade=card.overall_grade
+        overall_grade=card.overall_grade,
+        market_price=card.market_price,
+        price_source=card.price_source,
+        tcg_player_id=card.tcg_player_id,
+        set_name=card.set_name,
+        card_number=card.card_number,
+        rarity=card.rarity,
+        psa_10_price=card.psa_10_price,
+        psa_9_price=card.psa_9_price,
+        psa_8_price=card.psa_8_price
     )
+
 
 @app.get("/cards/{card_id}/image")
 async def get_card_image(card_id: int, db: Session = Depends(get_db)):
@@ -362,7 +606,7 @@ async def get_card_image(card_id: int, db: Session = Depends(get_db)):
     card = db.query(PokemonCard).filter(PokemonCard.id == card_id).first()
     if not card or not card.image_data:
         raise HTTPException(status_code=404, detail="Card or image not found")
-    
+
     # Determine content type based on file extension or default to jpeg
     content_type = "image/jpeg"
     if card.image_filename:
@@ -372,15 +616,16 @@ async def get_card_image(card_id: int, db: Session = Depends(get_db)):
             content_type = "image/gif"
         elif card.image_filename.lower().endswith('.webp'):
             content_type = "image/webp"
-    
+
     return Response(
-        content=card.image_data, 
+        content=card.image_data,
         media_type=content_type,
         headers={
             "Cache-Control": "public, max-age=3600",
             "Access-Control-Allow-Origin": "*"
         }
     )
+
 
 @app.get("/debug/cards")
 async def debug_cards(db: Session = Depends(get_db)):
@@ -402,6 +647,7 @@ async def debug_cards(db: Session = Depends(get_db)):
         ]
     }
 
+
 @app.delete("/debug/cards")
 async def delete_all_cards(db: Session = Depends(get_db)):
     """
@@ -413,14 +659,17 @@ async def delete_all_cards(db: Session = Depends(get_db)):
         return {"status": "ok", "deleted": True}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to clear cards: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to clear cards: {str(e)}")
+
 
 @app.get("/cards/{card_id}/price-history", response_model=List[PriceHistoryResponse])
 async def get_card_price_history(card_id: int, db: Session = Depends(get_db)):
     """
     Get price history for a specific card
     """
-    price_history = db.query(PriceHistory).filter(PriceHistory.card_id == card_id).order_by(PriceHistory.recorded_at.desc()).all()
+    price_history = db.query(PriceHistory).filter(
+        PriceHistory.card_id == card_id).order_by(PriceHistory.recorded_at.desc()).all()
     return [
         PriceHistoryResponse(
             id=entry.id,
@@ -431,6 +680,7 @@ async def get_card_price_history(card_id: int, db: Session = Depends(get_db)):
         )
         for entry in price_history
     ]
+
 
 @app.post("/cards/{card_id}/update-price")
 async def update_card_price(
@@ -444,15 +694,16 @@ async def update_card_price(
     card = db.query(PokemonCard).filter(PokemonCard.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
-    
+
     # Update card price
     card.estimated_price = new_price
     db.commit()
-    
+
     # Add to price history
     create_price_history_entry(card_id, new_price, db)
-    
+
     return {"status": "success", "message": "Price updated successfully"}
+
 
 @app.get("/portfolio/analytics")
 async def get_portfolio_analytics(db: Session = Depends(get_db)):
@@ -460,47 +711,47 @@ async def get_portfolio_analytics(db: Session = Depends(get_db)):
     Get portfolio analytics including total value and price changes
     """
     from datetime import datetime, timedelta
-    
+
     # Get all cards with their latest prices
     cards = db.query(PokemonCard).all()
-    
+
     total_value = 0
     total_value_1d_ago = 0
     total_value_1m_ago = 0
     total_value_3m_ago = 0
     total_value_1y_ago = 0
-    
+
     now = datetime.utcnow()
     one_day_ago = now - timedelta(days=1)
     one_month_ago = now - timedelta(days=30)
     three_months_ago = now - timedelta(days=90)
     one_year_ago = now - timedelta(days=365)
-    
+
     for card in cards:
         current_price = parse_price_string(card.estimated_price)
         total_value += current_price
-        
+
         # Get historical prices
         price_1d = db.query(PriceHistory).filter(
             PriceHistory.card_id == card.id,
             PriceHistory.recorded_at <= one_day_ago
         ).order_by(PriceHistory.recorded_at.desc()).first()
-        
+
         price_1m = db.query(PriceHistory).filter(
             PriceHistory.card_id == card.id,
             PriceHistory.recorded_at <= one_month_ago
         ).order_by(PriceHistory.recorded_at.desc()).first()
-        
+
         price_3m = db.query(PriceHistory).filter(
             PriceHistory.card_id == card.id,
             PriceHistory.recorded_at <= three_months_ago
         ).order_by(PriceHistory.recorded_at.desc()).first()
-        
+
         price_1y = db.query(PriceHistory).filter(
             PriceHistory.card_id == card.id,
             PriceHistory.recorded_at <= one_year_ago
         ).order_by(PriceHistory.recorded_at.desc()).first()
-        
+
         if price_1d:
             total_value_1d_ago += price_1d.price
         if price_1m:
@@ -509,12 +760,12 @@ async def get_portfolio_analytics(db: Session = Depends(get_db)):
             total_value_3m_ago += price_3m.price
         if price_1y:
             total_value_1y_ago += price_1y.price
-    
+
     def calculate_change(current, historical):
         if historical == 0:
             return 0
         return ((current - historical) / historical) * 100
-    
+
     return {
         "total_value": total_value,
         "total_cards": len(cards),
@@ -538,12 +789,14 @@ async def get_portfolio_analytics(db: Session = Depends(get_db)):
         }
     }
 
+
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
 
 # Create database tables on startup
+
+
 @app.on_event("startup")
 async def startup_event():
     create_tables()
-

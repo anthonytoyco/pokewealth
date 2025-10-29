@@ -17,6 +17,16 @@ interface CardAnalysisResult {
   edges?: GradingCondition
   surface?: GradingCondition
   overall_grade?: number
+  // Real market data from Pokemon API
+  market_price?: number
+  price_source?: string
+  tcg_player_id?: string
+  set_name?: string
+  card_number?: string
+  rarity?: string
+  psa_10_price?: number
+  psa_9_price?: number
+  psa_8_price?: number
 }
 
 export default function Home() {
@@ -146,6 +156,35 @@ export default function Home() {
       }
       if (gradingData.surface_description && gradingData.surface_description.trim() !== '') {
         formData.append('surface_description', gradingData.surface_description.trim())
+      }
+
+      // Add market data fields if available
+      if (result.market_price) {
+        formData.append('market_price', result.market_price.toString())
+      }
+      if (result.price_source) {
+        formData.append('price_source', result.price_source)
+      }
+      if (result.tcg_player_id) {
+        formData.append('tcg_player_id', result.tcg_player_id)
+      }
+      if (result.set_name) {
+        formData.append('set_name', result.set_name)
+      }
+      if (result.card_number) {
+        formData.append('card_number', result.card_number)
+      }
+      if (result.rarity) {
+        formData.append('rarity', result.rarity)
+      }
+      if (result.psa_10_price) {
+        formData.append('psa_10_price', result.psa_10_price.toString())
+      }
+      if (result.psa_9_price) {
+        formData.append('psa_9_price', result.psa_9_price.toString())
+      }
+      if (result.psa_8_price) {
+        formData.append('psa_8_price', result.psa_8_price.toString())
       }
 
       const response = await fetch('http://localhost:8000/save-card', {
@@ -301,7 +340,79 @@ export default function Home() {
                 <p className="text-4xl font-black text-[#0078ff]">
                   {result.estimated_price}
                 </p>
+                {result.price_source && (
+                  <p className="text-xs text-[#5a6c7d] dark:text-[#a8b2c1] mt-2">
+                    {result.price_source === 'api' ? '✓ Real market price from TCGPlayer' : 'AI estimated price'}
+                  </p>
+                )}
               </div>
+
+              {/* Card Details */}
+              {(result.set_name || result.card_number || result.rarity) && (
+                <div className="bg-white dark:bg-[#242b3d] border border-[#e1e4e8] dark:border-[#3d4556] rounded-xl p-6 mb-6 shadow-sm">
+                  <p className="text-sm font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-3 uppercase tracking-wide">
+                    Card Details
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {result.set_name && (
+                      <div>
+                        <p className="text-xs text-[#5a6c7d] dark:text-[#a8b2c1] mb-1">Set</p>
+                        <p className="font-semibold text-[#2c3e50] dark:text-white">{result.set_name}</p>
+                      </div>
+                    )}
+                    {result.card_number && (
+                      <div>
+                        <p className="text-xs text-[#5a6c7d] dark:text-[#a8b2c1] mb-1">Number</p>
+                        <p className="font-semibold text-[#2c3e50] dark:text-white">{result.card_number}</p>
+                      </div>
+                    )}
+                    {result.rarity && (
+                      <div>
+                        <p className="text-xs text-[#5a6c7d] dark:text-[#a8b2c1] mb-1">Rarity</p>
+                        <p className="font-semibold text-[#2c3e50] dark:text-white">{result.rarity}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* PSA Grading Prices */}
+              {(result.psa_10_price || result.psa_9_price || result.psa_8_price) && (
+                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 mb-6 shadow-sm">
+                  <p className="text-sm font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-3 uppercase tracking-wide flex items-center">
+                    <span className="mr-2">🏆</span> PSA Graded Card Values
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {result.psa_10_price && (
+                      <div className="bg-white dark:bg-[#242b3d] rounded-lg p-4 border-2 border-yellow-400">
+                        <p className="text-xs text-[#5a6c7d] dark:text-[#a8b2c1] mb-1">PSA 10 - Gem Mint</p>
+                        <p className="text-2xl font-black text-yellow-600 dark:text-yellow-400">
+                          ${result.psa_10_price.toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+                    {result.psa_9_price && (
+                      <div className="bg-white dark:bg-[#242b3d] rounded-lg p-4 border-2 border-gray-400">
+                        <p className="text-xs text-[#5a6c7d] dark:text-[#a8b2c1] mb-1">PSA 9 - Mint</p>
+                        <p className="text-2xl font-black text-gray-600 dark:text-gray-400">
+                          ${result.psa_9_price.toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+                    {result.psa_8_price && (
+                      <div className="bg-white dark:bg-[#242b3d] rounded-lg p-4 border-2 border-orange-400">
+                        <p className="text-xs text-[#5a6c7d] dark:text-[#a8b2c1] mb-1">PSA 8 - NM/Mint</p>
+                        <p className="text-2xl font-black text-orange-600 dark:text-orange-400">
+                          ${result.psa_8_price.toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#5a6c7d] dark:text-[#a8b2c1] mt-3 italic">
+                    * Professional grading values based on recent eBay sales
+                  </p>
+                </div>
+              )}
 
               {/* Overall Grade */}
               {result.overall_grade && (

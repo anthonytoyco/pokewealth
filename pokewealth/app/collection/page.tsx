@@ -24,6 +24,16 @@ interface Card {
     surface_score?: number
     surface_description?: string
     overall_grade?: number
+    // Real market data
+    market_price?: number
+    price_source?: string
+    tcg_player_id?: string
+    set_name?: string
+    card_number?: string
+    rarity?: string
+    psa_10_price?: number
+    psa_9_price?: number
+    psa_8_price?: number
 }
 
 interface PriceChange {
