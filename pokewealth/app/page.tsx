@@ -191,20 +191,30 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#1a1f2e]">
-      <main className="container mx-auto px-6 py-12 max-w-4xl">
+    <div 
+      className="min-h-screen relative"
+      style={{
+        backgroundImage: 'url(/pokemon-background.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* White overlay */}
+      <div className="absolute inset-0 bg-white/40 dark:bg-[#1a1f2e]/40 z-0" />
+      
+      <main className="container mx-auto px-6 pt-15 pb-16 max-w-4xl relative z-10">
         {/* Header */}
         <div className="text-center mb-10 animate-fade-in">
-          <h1 className="text-6xl font-black text-white mb-3">
-            PokeWealth
+          <h1 className="text-6xl font-black text-white mb-3 drop-shadow-lg">
+            PokéWealth
           </h1>
-          <p className="text-l text-[#5a6c7d] dark:text-[#a8b2c1] font-medium">
-            Professional Pokémon Card Grading
-          </p>
+
         </div>
 
         {/* Upload Section */}
-        <div className="bg-[#f8f9fb] dark:bg-[#242b3d] rounded-2xl shadow-sm border border-[#e1e4e8] dark:border-[#3d4556] p-8 animate-fade-in">
+        <div className="bg-[#f8f9fb]/30 dark:bg-[#242b3d]/30 backdrop-blur-md rounded-2xl shadow-lg border border-[#e1e4e8] dark:border-[#3d4556] p-8 animate-fade-in">
           <div className="mb-8">
             <label
               htmlFor="card-upload"
@@ -500,9 +510,9 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-4">
-          <p className="text-m text-yellow-500 dark:text-yellow-400">
-            Powered by Gemini AI
+        <div className="text-center mt-4">  
+          <p className="text-xl text-[#ffffff]">
+            Powered by <span className="text-l font-bold text-yellow-500 dark:text-yellow-400">Gemini AI</span>
           </p>
         </div>
       </main>
