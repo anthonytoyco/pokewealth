@@ -294,7 +294,7 @@ export default function Home() {
                 {result.card_name}
               </h2>
 
-              <div className="bg-[#0078ff]/5 dark:bg-[#0078ff]/10 border-l-4 border-[#0078ff] rounded-xl p-6 mb-6">
+              <div className="bg-white dark:bg-[#242b3d] border-l-4 border-[#0078ff] rounded-xl p-6 mb-6 shadow-sm">
                 <p className="text-sm font-bold text-[#5a6c7d] dark:text-[#a8b2c1] mb-2 uppercase tracking-wide">
                   Estimated Value
                 </p>
