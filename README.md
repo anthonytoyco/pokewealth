@@ -27,14 +27,14 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file in the `backend` folder with your Gemini API key:
+4. (in the google doc)Create a `.env` file in the `backend` folder with your Gemini API key:
 ```
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 5. Run the FastAPI server:
 ```bash
-uvicorn main:app --reload --port 8000
+fastapi dev
 ```
 
 Backend will be running at `http://localhost:8000`
@@ -58,6 +58,8 @@ npm run dev
 ```
 
 Frontend will be running at `http://localhost:3000`
+
+DONE (image uploading and analyzing should work now)
 
 ## 💻 Usage
 
